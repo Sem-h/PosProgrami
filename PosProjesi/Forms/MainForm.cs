@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using PosProjesi.Services;
 using PosProjesi.UI;
 
 namespace PosProjesi.Forms
@@ -12,6 +13,7 @@ namespace PosProjesi.Forms
         private Label _dateLabel = null!;
         private readonly List<Panel> _actionCards = new();
         private readonly List<Panel> _statCards = new();
+        private UpdateService? _updateService;
 
         public MainForm()
         {
@@ -175,7 +177,26 @@ namespace PosProjesi.Forms
             {
                 if (e.KeyCode == Keys.F1) { OpenSatisForm(); e.Handled = true; }
             };
-            this.Load += (s, e) => LayoutContentCards();
+            this.Load += (s, e) =>
+            {
+                LayoutContentCards();
+                StartUpdateService();
+            };
+
+            this.FormClosing += (s, e) =>
+            {
+                _updateService?.Dispose();
+            };
+        }
+
+        private void StartUpdateService()
+        {
+            _updateService = new UpdateService();
+            _updateService.UpdateAvailable += info =>
+            {
+                var toast = new UpdateToastPanel(info.Version, info.Notes);
+                toast.ShowIn(this);
+            };
         }
 
         private void ContentPanel_Paint(object? sender, PaintEventArgs e)
