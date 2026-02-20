@@ -1,6 +1,7 @@
 using Svg;
 using System.Drawing.Drawing2D;
 using PosProjesi.UI;
+using PosProjesi.Services;
 
 namespace PosProjesi.Forms
 {
@@ -118,7 +119,7 @@ namespace PosProjesi.Forms
             g.DrawString(subText, sf, new SolidBrush(Theme.TextSecondary), (this.Width - subSize.Width) / 2, currentY);
 
             // Version at bottom
-            g.DrawString("v1.0.0", Theme.FontSmall, new SolidBrush(Theme.TextMuted), this.Width - 50, this.Height - 22);
+            g.DrawString($"v{UpdateService.CurrentVersion}", Theme.FontSmall, new SolidBrush(Theme.TextMuted), this.Width - 60, this.Height - 22);
 
             // Bottom accent line
             using var lineBrush = new LinearGradientBrush(

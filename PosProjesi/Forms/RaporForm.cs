@@ -1,3 +1,4 @@
+using System.Drawing.Drawing2D;
 using PosProjesi.DataAccess;
 using PosProjesi.UI;
 
@@ -24,18 +25,38 @@ namespace PosProjesi.Forms
         private void InitializeComponent()
         {
             Theme.ApplyFormDefaults(this, "Verimek POS - Raporlar");
-            this.Size = new Size(1100, 700);
+            this.WindowState = FormWindowState.Maximized;
             this.MinimumSize = new Size(950, 600);
 
-            var header = Theme.CreateHeaderBar("Satış Raporları", Theme.AccentPurple);
+            // ── Header with gradient ──
+            var header = new Panel { Dock = DockStyle.Top, Height = 56 };
+            header.Paint += (s, e) =>
+            {
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                using var brush = new LinearGradientBrush(
+                    new Rectangle(0, 0, header.Width, header.Height),
+                    Color.FromArgb(40, Theme.AccentPurple.R, Theme.AccentPurple.G, Theme.AccentPurple.B),
+                    Theme.BgDark, LinearGradientMode.Horizontal);
+                g.FillRectangle(brush, 0, 0, header.Width, header.Height);
+
+                // Accent line
+                using var accentBrush = new SolidBrush(Theme.AccentPurple);
+                g.FillRectangle(accentBrush, 0, header.Height - 3, header.Width, 3);
+
+                // Title
+                using var titleFont = new Font("Segoe UI", 18, FontStyle.Bold);
+                TextRenderer.DrawText(g, "📊  Satış Raporları", titleFont,
+                    new Point(24, 12), Theme.TextPrimary, TextFormatFlags.NoPadding);
+            };
 
             // ── Filter bar ──
             var filterPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 50,
+                Height = 60,
                 BackColor = Theme.BgCard,
-                Padding = new Padding(16, 10, 16, 10)
+                Padding = new Padding(24, 14, 24, 14)
             };
             filterPanel.Paint += (s, e) =>
             {
@@ -43,158 +64,219 @@ namespace PosProjesi.Forms
                 e.Graphics.DrawLine(pen, 0, filterPanel.Height - 1, filterPanel.Width, filterPanel.Height - 1);
             };
 
-            var lblBas = Theme.CreateLabel("Başlangıç");
-            lblBas.Location = new Point(16, 16);
-            dtpBaslangic = new DateTimePicker { Location = new Point(85, 12), Size = new Size(150, 28), Format = DateTimePickerFormat.Short, Value = DateTime.Today.AddDays(-30) };
-            var lblBit = Theme.CreateLabel("Bitiş");
-            lblBit.Location = new Point(250, 16);
-            dtpBitis = new DateTimePicker { Location = new Point(290, 12), Size = new Size(150, 28), Format = DateTimePickerFormat.Short, Value = DateTime.Today };
+            var lblBas = new Label { Text = "Başlangıç", ForeColor = Theme.TextSecondary, Font = new Font("Segoe UI", 9.5f), Location = new Point(24, 20), AutoSize = true };
+            dtpBaslangic = new DateTimePicker { Location = new Point(100, 16), Size = new Size(160, 30), Format = DateTimePickerFormat.Short, Value = DateTime.Today.AddDays(-30) };
 
-            var btnFiltre = Theme.CreateButton("Filtrele", Theme.AccentPurple, 90, 30);
-            btnFiltre.Location = new Point(460, 10);
-            btnFiltre.Font = Theme.FontBody;
+            var lblBit = new Label { Text = "Bitiş", ForeColor = Theme.TextSecondary, Font = new Font("Segoe UI", 9.5f), Location = new Point(280, 20), AutoSize = true };
+            dtpBitis = new DateTimePicker { Location = new Point(320, 16), Size = new Size(160, 30), Format = DateTimePickerFormat.Short, Value = DateTime.Today };
+
+            var btnFiltre = Theme.CreateButton("🔍 Filtrele", Theme.AccentPurple, 110, 32);
+            btnFiltre.Location = new Point(506, 13);
+            btnFiltre.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
             btnFiltre.Click += (s, e) => LoadData();
 
-            var btnBugun = Theme.CreateButton("Bugün", Theme.BgInput, 70, 30);
-            btnBugun.Location = new Point(560, 10);
+            var btnBugun = Theme.CreateButton("📅 Bugün", Theme.BgInput, 100, 32);
+            btnBugun.Location = new Point(626, 13);
             btnBugun.ForeColor = Theme.TextSecondary;
-            btnBugun.Font = Theme.FontBody;
+            btnBugun.Font = new Font("Segoe UI", 9.5f);
             btnBugun.Click += (s, e) => { dtpBaslangic.Value = DateTime.Today; dtpBitis.Value = DateTime.Today; LoadData(); };
 
-            filterPanel.Controls.AddRange(new Control[] { lblBas, dtpBaslangic, lblBit, dtpBitis, btnFiltre, btnBugun });
+            var btnHafta = Theme.CreateButton("📆 Bu Hafta", Theme.BgInput, 110, 32);
+            btnHafta.Location = new Point(736, 13);
+            btnHafta.ForeColor = Theme.TextSecondary;
+            btnHafta.Font = new Font("Segoe UI", 9.5f);
+            btnHafta.Click += (s, e) =>
+            {
+                var today = DateTime.Today;
+                var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+                dtpBaslangic.Value = today.AddDays(-diff);
+                dtpBitis.Value = today;
+                LoadData();
+            };
+
+            var btnAy = Theme.CreateButton("🗓️ Bu Ay", Theme.BgInput, 100, 32);
+            btnAy.Location = new Point(856, 13);
+            btnAy.ForeColor = Theme.TextSecondary;
+            btnAy.Font = new Font("Segoe UI", 9.5f);
+            btnAy.Click += (s, e) =>
+            {
+                dtpBaslangic.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                dtpBitis.Value = DateTime.Today;
+                LoadData();
+            };
+
+            filterPanel.Controls.AddRange(new Control[] { lblBas, dtpBaslangic, lblBit, dtpBitis, btnFiltre, btnBugun, btnHafta, btnAy });
 
             // ── Stats row ──
             var statsPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 70,
+                Height = 90,
                 BackColor = Theme.BgDark,
-                Padding = new Padding(16, 10, 16, 10)
+                Padding = new Padding(20, 12, 20, 12)
             };
+            statsPanel.Resize += (s, e) => ArrangeStatBoxes(statsPanel);
 
-            lblGunlukVal = CreateStatBox("Bugün", "₺0,00", Theme.AccentGreen, 16);
-            lblDonemVal = CreateStatBox("Dönem Toplam", "₺0,00", Theme.AccentPurple, 230);
-            lblSayiVal = CreateStatBox("Satış Sayısı", "0", Theme.AccentBlue, 444);
+            lblGunlukVal = CreateStatBox("💰 Bugün", "₺0,00", Theme.AccentGreen, statsPanel);
+            lblDonemVal = CreateStatBox("📈 Dönem Toplam", "₺0,00", Theme.AccentPurple, statsPanel);
+            lblSayiVal = CreateStatBox("🧾 Satış Sayısı", "0", Theme.AccentBlue, statsPanel);
 
-            statsPanel.Controls.AddRange(new Control[] { lblGunlukVal.Parent!, lblDonemVal.Parent!, lblSayiVal.Parent! });
+            // ── Main content ──
+            var mainPanel = new Panel { Dock = DockStyle.Fill, BackColor = Theme.BgDark, Padding = new Padding(16, 12, 16, 12) };
 
-            // ── Main split ──
-            var mainSplit = new SplitContainer
-            {
-                Dock = DockStyle.Fill,
-                Orientation = Orientation.Vertical,
-                BackColor = Theme.BgDark,
-                SplitterDistance = 520,
-                SplitterWidth = 4
-            };
-
-            // Left: Sales list
-            var leftPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
-            var lblSatislar = Theme.CreateLabel("Satış Listesi");
-            lblSatislar.Font = Theme.FontBodyBold;
-            lblSatislar.ForeColor = Theme.TextPrimary;
-            lblSatislar.Dock = DockStyle.Top;
-            lblSatislar.Height = 28;
+            // Left panel: Sales list
+            var leftCard = CreateSectionCard("📋 Satış Listesi", Theme.AccentPurple);
+            leftCard.Dock = DockStyle.Fill;
 
             dgvSatislar = Theme.CreateGrid();
-            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", HeaderText = "Fiş No", Width = 65, MinimumWidth = 50, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tarih", HeaderText = "Tarih", Width = 140, MinimumWidth = 100, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "ToplamTutar", HeaderText = "Toplam", Width = 100, MinimumWidth = 80, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
-            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "OdemeTipi", HeaderText = "Ödeme", Width = 85, MinimumWidth = 65 });
+            dgvSatislar.Dock = DockStyle.Fill;
+            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", HeaderText = "Fiş No", Width = 70, MinimumWidth = 50, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tarih", HeaderText = "Tarih", Width = 160, MinimumWidth = 100, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "ToplamTutar", HeaderText = "Toplam ₺", Width = 110, MinimumWidth = 80, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
+            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "OdemeTipi", HeaderText = "Ödeme", Width = 90, MinimumWidth = 65 });
             dgvSatislar.CellClick += DgvSatislar_CellClick;
+            leftCard.Controls.Add(dgvSatislar);
 
-            leftPanel.Controls.Add(dgvSatislar);
-            leftPanel.Controls.Add(lblSatislar);
-            mainSplit.Panel1.Controls.Add(leftPanel);
+            // Right panel: split between details & top sellers
+            var rightPanel = new Panel { Dock = DockStyle.Right, Width = 420, Padding = new Padding(8, 0, 0, 0) };
 
-            // Right: Details + Top selling
-            var rightSplit = new SplitContainer
-            {
-                Dock = DockStyle.Fill,
-                Orientation = Orientation.Horizontal,
-                SplitterDistance = 240,
-                BackColor = Theme.BgDark,
-                SplitterWidth = 4
-            };
-
-            var detailPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
-            var lblDetay = Theme.CreateLabel("Satış Detayı");
-            lblDetay.Font = Theme.FontBodyBold;
-            lblDetay.ForeColor = Theme.TextPrimary;
-            lblDetay.Dock = DockStyle.Top;
-            lblDetay.Height = 28;
+            // Detail card
+            var detailCard = CreateSectionCard("🔎 Satış Detayı", Theme.AccentBlue);
+            detailCard.Dock = DockStyle.Fill;
 
             dgvDetaylar = Theme.CreateGrid();
+            dgvDetaylar.Dock = DockStyle.Fill;
             dgvDetaylar.Columns.Add(new DataGridViewTextBoxColumn { Name = "UrunAdi", HeaderText = "Ürün", MinimumWidth = 100, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvDetaylar.Columns.Add(new DataGridViewTextBoxColumn { Name = "Miktar", HeaderText = "Adet", Width = 55, MinimumWidth = 45, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgvDetaylar.Columns.Add(new DataGridViewTextBoxColumn { Name = "Miktar", HeaderText = "Adet", Width = 60, MinimumWidth = 45, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvDetaylar.Columns.Add(new DataGridViewTextBoxColumn { Name = "BirimFiyat", HeaderText = "Birim ₺", Width = 85, MinimumWidth = 65, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
             dgvDetaylar.Columns.Add(new DataGridViewTextBoxColumn { Name = "ToplamFiyat", HeaderText = "Toplam ₺", Width = 90, MinimumWidth = 70, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
+            detailCard.Controls.Add(dgvDetaylar);
 
-            detailPanel.Controls.Add(dgvDetaylar);
-            detailPanel.Controls.Add(lblDetay);
-            rightSplit.Panel1.Controls.Add(detailPanel);
-
-            var topPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
-            var lblTop = Theme.CreateLabel("En Çok Satanlar");
-            lblTop.Font = Theme.FontBodyBold;
-            lblTop.ForeColor = Theme.AccentOrange;
-            lblTop.Dock = DockStyle.Top;
-            lblTop.Height = 28;
+            // Top sellers card
+            var topCard = CreateSectionCard("🏆 En Çok Satanlar", Theme.AccentOrange);
+            topCard.Dock = DockStyle.Bottom;
+            topCard.Height = 240;
 
             dgvEnCokSatan = Theme.CreateGrid();
+            dgvEnCokSatan.Dock = DockStyle.Fill;
             dgvEnCokSatan.Columns.Add(new DataGridViewTextBoxColumn { Name = "UrunAdi", HeaderText = "Ürün", MinimumWidth = 100, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvEnCokSatan.Columns.Add(new DataGridViewTextBoxColumn { Name = "ToplamMiktar", HeaderText = "Adet", Width = 60, MinimumWidth = 45, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvEnCokSatan.Columns.Add(new DataGridViewTextBoxColumn { Name = "ToplamTutar", HeaderText = "Toplam ₺", Width = 100, MinimumWidth = 75, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
+            topCard.Controls.Add(dgvEnCokSatan);
 
-            topPanel.Controls.Add(dgvEnCokSatan);
-            topPanel.Controls.Add(lblTop);
-            rightSplit.Panel2.Controls.Add(topPanel);
+            // Splitter
+            var rightSplitter = new Splitter { Dock = DockStyle.Bottom, Height = 6, BackColor = Theme.BgDark };
 
-            mainSplit.Panel2.Controls.Add(rightSplit);
+            rightPanel.Controls.Add(detailCard);
+            rightPanel.Controls.Add(rightSplitter);
+            rightPanel.Controls.Add(topCard);
 
-            this.Controls.Add(mainSplit);
+            // Splitter for left/right
+            var mainSplitter = new Splitter { Dock = DockStyle.Right, Width = 6, BackColor = Theme.BgDark };
+
+            mainPanel.Controls.Add(leftCard);
+            mainPanel.Controls.Add(mainSplitter);
+            mainPanel.Controls.Add(rightPanel);
+
+            // Add everything
+            this.Controls.Add(mainPanel);
             this.Controls.Add(statsPanel);
             this.Controls.Add(filterPanel);
             this.Controls.Add(header);
         }
 
-        private Label CreateStatBox(string title, string value, Color accent, int x)
+        private Panel CreateSectionCard(string title, Color accent)
+        {
+            var card = new Panel { BackColor = Theme.BgCard, Padding = new Padding(1) };
+            card.Paint += (s, e) =>
+            {
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                // Border
+                using var borderPen = new Pen(Theme.Border);
+                g.DrawRectangle(borderPen, 0, 0, card.Width - 1, card.Height - 1);
+                // Top accent
+                using var accentBrush = new SolidBrush(accent);
+                g.FillRectangle(accentBrush, 0, 0, card.Width, 3);
+            };
+
+            var titleBar = new Panel { Dock = DockStyle.Top, Height = 36, BackColor = Color.FromArgb(20, accent.R, accent.G, accent.B) };
+            titleBar.Paint += (s, e) =>
+            {
+                var g = e.Graphics;
+                using var font = new Font("Segoe UI", 11, FontStyle.Bold);
+                TextRenderer.DrawText(g, title, font, new Point(12, 8), Theme.TextPrimary, TextFormatFlags.NoPadding);
+                using var pen = new Pen(Theme.Border);
+                g.DrawLine(pen, 0, titleBar.Height - 1, titleBar.Width, titleBar.Height - 1);
+            };
+
+            card.Controls.Add(titleBar);
+            return card;
+        }
+
+        private Label CreateStatBox(string title, string value, Color accent, Panel parent)
         {
             var panel = new Panel
             {
-                Location = new Point(x, 4),
-                Size = new Size(200, 55),
+                Size = new Size(240, 66),
                 BackColor = Theme.BgCard
             };
             panel.Paint += (s, e) =>
             {
-                using var accentBrush = new SolidBrush(accent);
-                e.Graphics.FillRectangle(accentBrush, 0, 0, 3, panel.Height);
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                // Border
                 using var borderPen = new Pen(Theme.Border);
-                e.Graphics.DrawRectangle(borderPen, 0, 0, panel.Width - 1, panel.Height - 1);
+                g.DrawRectangle(borderPen, 0, 0, panel.Width - 1, panel.Height - 1);
+                // Left accent
+                using var accentBrush = new SolidBrush(accent);
+                g.FillRectangle(accentBrush, 0, 0, 4, panel.Height);
+                // Subtle gradient bg
+                using var gradBrush = new LinearGradientBrush(
+                    new Rectangle(0, 0, panel.Width, panel.Height),
+                    Color.FromArgb(15, accent.R, accent.G, accent.B),
+                    Theme.BgCard, LinearGradientMode.Horizontal);
+                g.FillRectangle(gradBrush, 4, 1, panel.Width - 5, panel.Height - 2);
             };
 
             var lblTitle = new Label
             {
                 Text = title,
-                Location = new Point(14, 6),
+                Location = new Point(16, 8),
                 AutoSize = true,
                 ForeColor = Theme.TextMuted,
-                Font = Theme.FontSmall
+                Font = new Font("Segoe UI", 9)
             };
 
             var lblValue = new Label
             {
                 Text = value,
-                Location = new Point(14, 24),
+                Location = new Point(16, 30),
                 AutoSize = true,
                 ForeColor = Theme.TextPrimary,
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
                 Tag = title
             };
 
             panel.Controls.AddRange(new Control[] { lblTitle, lblValue });
+            parent.Controls.Add(panel);
             return lblValue;
+        }
+
+        private void ArrangeStatBoxes(Panel container)
+        {
+            int gap = 20;
+            int count = container.Controls.Count;
+            if (count == 0) return;
+            int boxWidth = (container.Width - container.Padding.Horizontal - (count - 1) * gap) / count;
+            int x = container.Padding.Left;
+            int y = container.Padding.Top;
+            foreach (Control c in container.Controls)
+            {
+                c.Location = new Point(x, y);
+                c.Size = new Size(boxWidth, container.Height - container.Padding.Vertical);
+                x += boxWidth + gap;
+            }
         }
 
         private void LoadData()

@@ -1,6 +1,6 @@
 {
-  "version": "1.0.4",
-  "notes": "Sidebar Verimek branding, kart aralık düzeltmeleri",
+  "version": "1.0.5",
+  "notes": "DB yedekleme, Excel import/export, rapor yeniden tasarim, splash versiyon duzeltme",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe"
