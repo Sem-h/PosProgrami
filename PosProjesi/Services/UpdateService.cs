@@ -1,5 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
+using System.IO.Compression;
+using System.Diagnostics;
 
 namespace PosProjesi.Services
 {
@@ -7,6 +9,7 @@ namespace PosProjesi.Services
     {
         public string Version { get; set; } = "";
         public string Notes { get; set; } = "";
+        public string DownloadUrl { get; set; } = "";
     }
 
     public class UpdateService : IDisposable
@@ -16,16 +19,14 @@ namespace PosProjesi.Services
         private const string VersionUrl =
             "https://raw.githubusercontent.com/Sem-h/PosProgrami/main/version.json";
 
-        private static readonly string LastCheckFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lastcheck.txt");
+        private static readonly string AppDir = AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string LastCheckFile = Path.Combine(AppDir, "lastcheck.txt");
+        private static readonly string UpdateDir = Path.Combine(AppDir, "_update");
 
         private readonly System.Threading.Timer _timer;
         private readonly HttpClient _http;
         private bool _disposed;
 
-        /// <summary>
-        /// Fires on the UI thread when a new version is detected while the app is running.
-        /// </summary>
         public event Action<UpdateInfo>? UpdateAvailable;
 
         private readonly SynchronizationContext? _syncContext;
@@ -35,9 +36,8 @@ namespace PosProjesi.Services
             _syncContext = SynchronizationContext.Current;
             _http = new HttpClient();
             _http.DefaultRequestHeaders.UserAgent.ParseAdd("VerimekPOS/1.0");
-            _http.Timeout = TimeSpan.FromSeconds(10);
+            _http.Timeout = TimeSpan.FromSeconds(30);
 
-            // Check every 5 minutes (first check after 30 seconds)
             _timer = new System.Threading.Timer(
                 async _ => await CheckInBackground(),
                 null,
@@ -45,9 +45,6 @@ namespace PosProjesi.Services
                 TimeSpan.FromMinutes(5));
         }
 
-        /// <summary>
-        /// One-shot check, suitable for startup. Returns UpdateInfo if update available, null otherwise.
-        /// </summary>
         public async Task<UpdateInfo?> CheckOnceAsync()
         {
             try
@@ -59,14 +56,10 @@ namespace PosProjesi.Services
                     return remote;
                 }
             }
-            catch { /* network errors are silently ignored */ }
+            catch { }
             return null;
         }
 
-        /// <summary>
-        /// Check if an update arrived while app was closed.
-        /// Compares the last-seen remote version stored in lastcheck.txt.
-        /// </summary>
         public static bool HasPendingUpdate(out string remoteVersion)
         {
             remoteVersion = "";
@@ -79,6 +72,96 @@ namespace PosProjesi.Services
             catch { return false; }
         }
 
+        /// <summary>
+        /// Download update ZIP, extract, and launch updater script that replaces files and restarts.
+        /// </summary>
+        public async Task<bool> DownloadAndApplyAsync(UpdateInfo info, Action<int>? onProgress = null)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(info.DownloadUrl)) return false;
+
+                // Clean up previous update folder
+                if (Directory.Exists(UpdateDir))
+                    Directory.Delete(UpdateDir, true);
+                Directory.CreateDirectory(UpdateDir);
+
+                var zipPath = Path.Combine(UpdateDir, "update.zip");
+                var extractDir = Path.Combine(UpdateDir, "files");
+
+                // Download ZIP with progress
+                using var response = await _http.GetAsync(info.DownloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+
+                var totalBytes = response.Content.Headers.ContentLength ?? -1;
+                long downloaded = 0;
+
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    var buffer = new byte[81920];
+                    int bytesRead;
+                    while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        await fileStream.WriteAsync(buffer, 0, bytesRead);
+                        downloaded += bytesRead;
+                        if (totalBytes > 0)
+                            onProgress?.Invoke((int)(downloaded * 100 / totalBytes));
+                    }
+                }
+
+                onProgress?.Invoke(100);
+
+                // Extract ZIP
+                ZipFile.ExtractToDirectory(zipPath, extractDir, true);
+
+                // Create updater batch script
+                var batPath = Path.Combine(UpdateDir, "update.bat");
+                var exeName = Path.GetFileName(Environment.ProcessPath ?? "PosProjesi.exe");
+                var script = $@"@echo off
+chcp 65001 >nul
+echo Güncelleme uygulanıyor...
+echo Uygulama kapanması bekleniyor...
+timeout /t 2 /nobreak >nul
+
+:waitloop
+tasklist /FI ""IMAGENAME eq {exeName}"" 2>NUL | find /I ""{exeName}"" >NUL
+if not errorlevel 1 (
+    timeout /t 1 /nobreak >nul
+    goto waitloop
+)
+
+echo Dosyalar kopyalanıyor...
+xcopy ""{extractDir}\*"" ""{AppDir}"" /E /Y /Q >nul 2>nul
+
+echo Uygulama yeniden başlatılıyor...
+start """" ""{Path.Combine(AppDir, exeName)}""
+
+echo Temizlik yapılıyor...
+timeout /t 2 /nobreak >nul
+rmdir /S /Q ""{UpdateDir}"" 2>nul
+exit
+";
+                File.WriteAllText(batPath, script, System.Text.Encoding.UTF8);
+
+                // Launch updater and close app
+                var psi = new ProcessStartInfo
+                {
+                    FileName = batPath,
+                    CreateNoWindow = true,
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                Process.Start(psi);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private async Task CheckInBackground()
         {
             try
@@ -88,19 +171,17 @@ namespace PosProjesi.Services
                 {
                     SaveLastCheck(remote.Version);
 
-                    // Fire event on UI thread
                     if (_syncContext != null)
                         _syncContext.Post(_ => UpdateAvailable?.Invoke(remote), null);
                     else
                         UpdateAvailable?.Invoke(remote);
                 }
             }
-            catch { /* silently ignore network errors */ }
+            catch { }
         }
 
         private async Task<UpdateInfo?> FetchRemoteVersionAsync()
         {
-            // Add cache-buster to avoid GitHub CDN caching
             var url = VersionUrl + "?t=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var json = await _http.GetStringAsync(url);
 

@@ -23,15 +23,97 @@ static class Program
         // Check if update arrived while app was closed
         if (UpdateService.HasPendingUpdate(out var pendingVersion))
         {
-            MessageBox.Show(
-                $"Yeni bir güncelleme mevcut: v{pendingVersion}\n\n" +
-                $"Mevcut sürüm: v{UpdateService.CurrentVersion}",
+            var result = MessageBox.Show(
+                $"Yeni bir güncelleme mevcut: v{pendingVersion}\n" +
+                $"Mevcut sürüm: v{UpdateService.CurrentVersion}\n\n" +
+                "Şimdi güncellemek ister misiniz?",
                 "Güncelleme Bildirimi",
-                MessageBoxButtons.OK,
+                MessageBoxButtons.YesNo,
                 MessageBoxIcon.Information);
+
+            if (result == DialogResult.Yes)
+            {
+                ApplyStartupUpdate();
+                return; // App will restart via batch script
+            }
         }
 
         // Run main application
         Application.Run(new MainForm());
     }
+
+    private static void ApplyStartupUpdate()
+    {
+        using var service = new UpdateService();
+        var info = service.CheckOnceAsync().GetAwaiter().GetResult();
+
+        if (info == null || string.IsNullOrEmpty(info.DownloadUrl))
+        {
+            MessageBox.Show("İndirme bilgisi alınamadı.", "Hata",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            Application.Run(new MainForm());
+            return;
+        }
+
+        // Simple progress form
+        var progressForm = new Form
+        {
+            Text = "Güncelleme İndiriliyor",
+            Size = new Size(400, 130),
+            StartPosition = FormStartPosition.CenterScreen,
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            MaximizeBox = false,
+            MinimizeBox = false,
+            BackColor = Color.FromArgb(24, 26, 38)
+        };
+
+        var lbl = new Label
+        {
+            Text = "İndiriliyor... %0",
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI", 10),
+            Location = new Point(20, 15),
+            AutoSize = true
+        };
+
+        var bar = new ProgressBar
+        {
+            Location = new Point(20, 45),
+            Size = new Size(345, 22),
+            Style = ProgressBarStyle.Continuous
+        };
+
+        progressForm.Controls.Add(lbl);
+        progressForm.Controls.Add(bar);
+
+        progressForm.Shown += async (s, e) =>
+        {
+            var success = await service.DownloadAndApplyAsync(info, progress =>
+            {
+                progressForm.Invoke(() =>
+                {
+                    bar.Value = Math.Min(progress, 100);
+                    lbl.Text = $"İndiriliyor... %{progress}";
+                });
+            });
+
+            if (success)
+            {
+                lbl.Text = "Güncelleme uygulanıyor...";
+                await Task.Delay(500);
+                progressForm.Close();
+                Application.Exit();
+            }
+            else
+            {
+                MessageBox.Show("İndirme başarısız oldu!", "Hata",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                progressForm.Close();
+                Application.Run(new MainForm());
+            }
+        };
+
+        Application.Run(progressForm);
+    }
 }
+

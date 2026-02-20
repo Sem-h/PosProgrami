@@ -194,7 +194,7 @@ namespace PosProjesi.Forms
             _updateService = new UpdateService();
             _updateService.UpdateAvailable += info =>
             {
-                var toast = new UpdateToastPanel(info.Version, info.Notes);
+                var toast = new UpdateToastPanel(info);
                 toast.ShowIn(this);
             };
         }
