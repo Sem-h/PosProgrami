@@ -9,6 +9,10 @@ obj/
 *.exe
 *.log
 
+## Release klasörü istisna (güncelleme dosyaları)
+!release/
+!release/**
+
 ## IDE
 .vs/
 .vscode/
