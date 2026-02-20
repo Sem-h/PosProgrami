@@ -6,6 +6,9 @@ namespace PosProjesi.Forms
 {
     public class AdminPanelForm : Form
     {
+        private Panel _contentPanel = null!;
+        private readonly List<Panel> _cards = new();
+
         public AdminPanelForm()
         {
             InitializeComponent();
@@ -19,7 +22,7 @@ namespace PosProjesi.Forms
 
             var header = Theme.CreateHeaderBar("Yönetim Paneli", Theme.AccentOrange);
 
-            var contentPanel = new Panel
+            _contentPanel = new Panel
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(40, 36, 40, 20),
@@ -34,27 +37,51 @@ namespace PosProjesi.Forms
                 ("Geri Dön",       "Ana menüye geri dön",                          "↩️",  Theme.TextMuted,    () => this.Close()),
             };
 
-            int cardW = 310;
-            int cardH = 160;
-            int gap = 20;
-            int cols = 2;
-
-            for (int i = 0; i < items.Length; i++)
+            foreach (var (title, desc, icon, accent, action) in items)
             {
-                var (title, desc, icon, accent, action) = items[i];
-                int col = i % cols;
-                int row = i / cols;
-                int x = col * (cardW + gap);
-                int y = row * (cardH + gap);
-
-                var card = CreateCard(title, desc, icon, accent, cardW, cardH);
-                card.Location = new Point(x, y);
+                var card = CreateCard(title, desc, icon, accent, 310, 160);
                 card.Click += (s, e) => action();
-                contentPanel.Controls.Add(card);
+                _cards.Add(card);
+                _contentPanel.Controls.Add(card);
             }
 
-            this.Controls.Add(contentPanel);
+            _contentPanel.Resize += (s, e) => LayoutCards();
+
+            this.Controls.Add(_contentPanel);
             this.Controls.Add(header);
+
+            this.Load += (s, e) => LayoutCards();
+        }
+
+        private void LayoutCards()
+        {
+            if (_contentPanel == null || _cards.Count == 0) return;
+
+            int padX = _contentPanel.Padding.Left;
+            int padY = _contentPanel.Padding.Top;
+            int availW = _contentPanel.ClientSize.Width - padX - _contentPanel.Padding.Right;
+            int availH = _contentPanel.ClientSize.Height - padY - _contentPanel.Padding.Bottom;
+
+            int cols = 2;
+            int rows = (_cards.Count + cols - 1) / cols;
+            int gap = 20;
+
+            int cardW = (availW - gap * (cols - 1)) / cols;
+            cardW = Math.Max(cardW, 220);
+
+            int cardH = (availH - gap * (rows - 1)) / rows;
+            cardH = Math.Clamp(cardH, 140, 240);
+
+            for (int i = 0; i < _cards.Count; i++)
+            {
+                int col = i % cols;
+                int row = i / cols;
+                _cards[i].Size = new Size(cardW, cardH);
+                _cards[i].Location = new Point(
+                    padX + col * (cardW + gap),
+                    padY + row * (cardH + gap));
+                _cards[i].Invalidate();
+            }
         }
 
         private Panel CreateCard(string title, string desc, string icon, Color accent, int w, int h)
@@ -86,10 +113,7 @@ namespace PosProjesi.Forms
                 g.DrawPath(borderPen, path);
 
                 // Left accent bar
-                var accentRect = new Rectangle(0, 0, 4, card.Height - 1);
-                using var accentPath = Theme.RoundedRect(accentRect, 2);
-                using var accentBrush = new SolidBrush(accent);
-                g.FillRectangle(accentBrush, 0, 12, 4, card.Height - 24);
+                g.FillRectangle(new SolidBrush(accent), 0, 12, 4, card.Height - 24);
 
                 // Icon (emoji)
                 using var iconFont = new Font("Segoe UI Emoji", 28);
@@ -125,3 +149,4 @@ namespace PosProjesi.Forms
         }
     }
 }
+
