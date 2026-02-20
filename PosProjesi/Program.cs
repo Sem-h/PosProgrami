@@ -1,6 +1,7 @@
 using PosProjesi.Database;
 using PosProjesi.Forms;
 using PosProjesi.Services;
+using PosProjesi.UI;
 
 namespace PosProjesi;
 
@@ -27,14 +28,8 @@ static class Program
             var info = startupService.CheckOnceAsync().GetAwaiter().GetResult();
             if (info != null && info.Files != null && info.Files.Count > 0)
             {
-                var result = MessageBox.Show(
-                    $"Yeni bir güncelleme mevcut: v{info.Version}\n" +
-                    $"Mevcut sürüm: v{UpdateService.CurrentVersion}\n\n" +
-                    $"{info.Notes}\n\n" +
-                    "Şimdi güncellemek ister misiniz?",
-                    "Güncelleme Bildirimi",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Information);
+                using var prompt = new UpdatePromptDialog(info);
+                var result = prompt.ShowDialog();
 
                 if (result == DialogResult.Yes)
                 {
