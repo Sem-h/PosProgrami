@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6",
-  "notes": "Guncelleme ekrani yeniden tasarim, ozel dialog",
+  "version": "1.0.7",
+  "notes": "Splash ekran buyutme",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe"

@@ -13,7 +13,7 @@ namespace PosProjesi.Services
 
     public class UpdateService : IDisposable
     {
-        public const string CurrentVersion = "1.0.6";
+        public const string CurrentVersion = "1.0.7";
 
         private const string BaseUrl =
             "https://raw.githubusercontent.com/Sem-h/PosProgrami/main";

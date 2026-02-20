@@ -17,7 +17,7 @@ namespace PosProjesi.Forms
         {
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Size = new Size(480, 320);
+            this.Size = new Size(580, 400);
             this.BackColor = Theme.BgDark;
             this.DoubleBuffered = true;
             this.ShowInTaskbar = false;
