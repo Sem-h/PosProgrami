@@ -1,5 +1,8 @@
 {
   "version": "1.0.1",
   "notes": "Yönetim paneli ve ana ekran responsive düzenleme",
-  "downloadUrl": "https://github.com/Sem-h/PosProgrami/releases/download/v1.0.1/PosProjesi-Release.zip"
+  "files": [
+    "PosProjesi.dll",
+    "PosProjesi.exe"
+  ]
 }

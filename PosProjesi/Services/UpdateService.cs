@@ -1,6 +1,5 @@
 using System.Net.Http;
 using System.Text.Json;
-using System.IO.Compression;
 using System.Diagnostics;
 
 namespace PosProjesi.Services
@@ -9,15 +8,18 @@ namespace PosProjesi.Services
     {
         public string Version { get; set; } = "";
         public string Notes { get; set; } = "";
-        public string DownloadUrl { get; set; } = "";
+        public List<string> Files { get; set; } = new();
     }
 
     public class UpdateService : IDisposable
     {
         public const string CurrentVersion = "1.0.0";
 
-        private const string VersionUrl =
-            "https://raw.githubusercontent.com/Sem-h/PosProgrami/main/version.json";
+        private const string BaseUrl =
+            "https://raw.githubusercontent.com/Sem-h/PosProgrami/main";
+
+        private const string VersionUrl = BaseUrl + "/version.json";
+        private const string ReleaseBaseUrl = BaseUrl + "/release";
 
         private static readonly string AppDir = AppDomain.CurrentDomain.BaseDirectory;
         private static readonly string LastCheckFile = Path.Combine(AppDir, "lastcheck.txt");
@@ -73,86 +75,60 @@ namespace PosProjesi.Services
         }
 
         /// <summary>
-        /// Download update ZIP, extract, and launch updater script that replaces files and restarts.
+        /// Downloads individual changed files from release/ folder, then launches updater script.
         /// </summary>
         public async Task<bool> DownloadAndApplyAsync(UpdateInfo info, Action<int>? onProgress = null)
         {
             try
             {
-                if (string.IsNullOrEmpty(info.DownloadUrl)) return false;
+                if (info.Files == null || info.Files.Count == 0) return false;
 
                 // Clean up previous update folder
                 if (Directory.Exists(UpdateDir))
                     Directory.Delete(UpdateDir, true);
                 Directory.CreateDirectory(UpdateDir);
 
-                var zipPath = Path.Combine(UpdateDir, "update.zip");
-                var extractDir = Path.Combine(UpdateDir, "files");
-
-                // Download ZIP with progress
-                using var response = await _http.GetAsync(info.DownloadUrl, HttpCompletionOption.ResponseHeadersRead);
-                response.EnsureSuccessStatusCode();
-
-                var totalBytes = response.Content.Headers.ContentLength ?? -1;
-                long downloaded = 0;
-
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                using (var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                // Download each file from release/ folder
+                int total = info.Files.Count;
+                for (int i = 0; i < total; i++)
                 {
-                    var buffer = new byte[81920];
-                    int bytesRead;
-                    while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                    {
-                        await fileStream.WriteAsync(buffer, 0, bytesRead);
-                        downloaded += bytesRead;
-                        if (totalBytes > 0)
-                            onProgress?.Invoke((int)(downloaded * 100 / totalBytes));
-                    }
+                    var fileName = info.Files[i];
+                    var url = $"{ReleaseBaseUrl}/{fileName}?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                    var destPath = Path.Combine(UpdateDir, fileName);
+
+                    var bytes = await _http.GetByteArrayAsync(url);
+                    await File.WriteAllBytesAsync(destPath, bytes);
+
+                    onProgress?.Invoke((i + 1) * 100 / total);
                 }
-
-                onProgress?.Invoke(100);
-
-                // Extract ZIP
-                ZipFile.ExtractToDirectory(zipPath, extractDir, true);
 
                 // Create updater batch script
                 var batPath = Path.Combine(UpdateDir, "update.bat");
                 var exeName = Path.GetFileName(Environment.ProcessPath ?? "PosProjesi.exe");
                 var script = $@"@echo off
 chcp 65001 >nul
-echo Güncelleme uygulanıyor...
-echo Uygulama kapanması bekleniyor...
 timeout /t 2 /nobreak >nul
-
 :waitloop
 tasklist /FI ""IMAGENAME eq {exeName}"" 2>NUL | find /I ""{exeName}"" >NUL
 if not errorlevel 1 (
     timeout /t 1 /nobreak >nul
     goto waitloop
 )
-
-echo Dosyalar kopyalanıyor...
-xcopy ""{extractDir}\*"" ""{AppDir}"" /E /Y /Q >nul 2>nul
-
-echo Uygulama yeniden başlatılıyor...
+xcopy ""{UpdateDir}\*.*"" ""{AppDir}"" /Y /Q >nul 2>nul
 start """" ""{Path.Combine(AppDir, exeName)}""
-
-echo Temizlik yapılıyor...
 timeout /t 2 /nobreak >nul
 rmdir /S /Q ""{UpdateDir}"" 2>nul
 exit
 ";
                 File.WriteAllText(batPath, script, System.Text.Encoding.UTF8);
 
-                // Launch updater and close app
-                var psi = new ProcessStartInfo
+                Process.Start(new ProcessStartInfo
                 {
                     FileName = batPath,
                     CreateNoWindow = true,
                     UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Hidden
-                };
-                Process.Start(psi);
+                });
 
                 return true;
             }
@@ -184,7 +160,6 @@ exit
         {
             var url = VersionUrl + "?t=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var json = await _http.GetStringAsync(url);
-
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             return JsonSerializer.Deserialize<UpdateInfo>(json, options);
         }

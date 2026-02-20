@@ -47,7 +47,7 @@ static class Program
         using var service = new UpdateService();
         var info = service.CheckOnceAsync().GetAwaiter().GetResult();
 
-        if (info == null || string.IsNullOrEmpty(info.DownloadUrl))
+        if (info == null || info.Files == null || info.Files.Count == 0)
         {
             MessageBox.Show("İndirme bilgisi alınamadı.", "Hata",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
