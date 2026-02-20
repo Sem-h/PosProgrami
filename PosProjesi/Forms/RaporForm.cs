@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using PosProjesi.DataAccess;
+using PosProjesi.Models;
 using PosProjesi.UI;
 
 namespace PosProjesi.Forms
@@ -15,6 +16,8 @@ namespace PosProjesi.Forms
         private Label lblDonemVal = null!;
         private Label lblSayiVal = null!;
         private DataGridView dgvEnCokSatan = null!;
+        private ComboBox cmbPersonel = null!;
+        private readonly PersonelRepository _personelRepo = new();
 
         public RaporForm()
         {
@@ -105,21 +108,34 @@ namespace PosProjesi.Forms
                 LoadData();
             };
 
-            filterPanel.Controls.AddRange(new Control[] { lblBas, dtpBaslangic, lblBit, dtpBitis, btnFiltre, btnBugun, btnHafta, btnAy });
+            var lblPersonel = new Label { Text = "Personel", ForeColor = Theme.TextSecondary, Font = new Font("Segoe UI", 9.5f), Location = new Point(970, 20), AutoSize = true };
+            cmbPersonel = new ComboBox
+            {
+                Location = new Point(1040, 16),
+                Size = new Size(160, 30),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                BackColor = Theme.BgInput,
+                ForeColor = Theme.TextPrimary,
+                Font = new Font("Segoe UI", 10)
+            };
+            LoadPersonelCombo();
+
+            filterPanel.Controls.AddRange(new Control[] { lblBas, dtpBaslangic, lblBit, dtpBitis, btnFiltre, btnBugun, btnHafta, btnAy, lblPersonel, cmbPersonel });
 
             // ── Stats row ──
             var statsPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 90,
+                Height = 100,
                 BackColor = Theme.BgDark,
-                Padding = new Padding(20, 12, 20, 12)
+                Padding = new Padding(14, 10, 14, 10)
             };
             statsPanel.Resize += (s, e) => ArrangeStatBoxes(statsPanel);
 
             lblGunlukVal = CreateStatBox("💰 Bugün", "₺0,00", Theme.AccentGreen, statsPanel);
             lblDonemVal = CreateStatBox("📈 Dönem Toplam", "₺0,00", Theme.AccentPurple, statsPanel);
             lblSayiVal = CreateStatBox("🧾 Satış Sayısı", "0", Theme.AccentBlue, statsPanel);
+            ArrangeStatBoxes(statsPanel); // initial layout
 
             // ── Main content ──
             var mainPanel = new Panel { Dock = DockStyle.Fill, BackColor = Theme.BgDark, Padding = new Padding(16, 12, 16, 12) };
@@ -134,6 +150,7 @@ namespace PosProjesi.Forms
             dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tarih", HeaderText = "Tarih", Width = 160, MinimumWidth = 100, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "ToplamTutar", HeaderText = "Toplam ₺", Width = 110, MinimumWidth = 80, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
             dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "OdemeTipi", HeaderText = "Ödeme", Width = 90, MinimumWidth = 65 });
+            dgvSatislar.Columns.Add(new DataGridViewTextBoxColumn { Name = "Personel", HeaderText = "Personel", Width = 130, MinimumWidth = 80 });
             dgvSatislar.CellClick += DgvSatislar_CellClick;
             leftCard.Controls.Add(dgvSatislar);
 
@@ -218,7 +235,7 @@ namespace PosProjesi.Forms
         {
             var panel = new Panel
             {
-                Size = new Size(240, 66),
+                Size = new Size(180, 66),
                 BackColor = Theme.BgCard
             };
             panel.Paint += (s, e) =>
@@ -284,10 +301,14 @@ namespace PosProjesi.Forms
             var baslangic = dtpBaslangic.Value.Date;
             var bitis = dtpBitis.Value.Date;
 
-            var satislar = _satisRepo.GetSatislar(baslangic, bitis);
+            int? personelId = null;
+            if (cmbPersonel.SelectedIndex > 0 && cmbPersonel.SelectedItem is Personel selPersonel)
+                personelId = selPersonel.Id;
+
+            var satislar = _satisRepo.GetSatislar(baslangic, bitis, personelId);
             dgvSatislar.Rows.Clear();
             foreach (var s in satislar)
-                dgvSatislar.Rows.Add(s.Id, s.SatisTarihi, $"₺{s.ToplamTutar:N2}", s.OdemeTipi);
+                dgvSatislar.Rows.Add(s.Id, s.SatisTarihi, $"₺{s.ToplamTutar:N2}", s.OdemeTipi, s.KasiyerAdi ?? "-");
 
             var gunlukToplam = _satisRepo.GetGunlukToplam(DateTime.Today);
             var donemToplam = satislar.Sum(s => s.ToplamTutar);
@@ -312,6 +333,17 @@ namespace PosProjesi.Forms
             dgvDetaylar.Rows.Clear();
             foreach (var d in detaylar)
                 dgvDetaylar.Rows.Add(d.UrunAdi, d.Miktar, $"₺{d.BirimFiyat:N2}", $"₺{d.ToplamFiyat:N2}");
+        }
+
+        private void LoadPersonelCombo()
+        {
+            cmbPersonel.Items.Clear();
+            cmbPersonel.Items.Add("Tümü");
+            var personeller = _personelRepo.GetAll();
+            foreach (var p in personeller)
+                cmbPersonel.Items.Add(p);
+            cmbPersonel.SelectedIndex = 0;
+            cmbPersonel.DisplayMember = "TamAd";
         }
     }
 }

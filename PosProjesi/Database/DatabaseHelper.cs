@@ -49,7 +49,8 @@ namespace PosProjesi.Database
                     SatisTarihi TEXT DEFAULT (datetime('now','localtime')),
                     ToplamTutar REAL NOT NULL,
                     OdemeTipi TEXT NOT NULL,
-                    KasiyerAdi TEXT
+                    KasiyerAdi TEXT,
+                    PersonelId INTEGER
                 );
 
                 CREATE TABLE IF NOT EXISTS SatisDetaylari (
@@ -62,8 +63,24 @@ namespace PosProjesi.Database
                     FOREIGN KEY (SatisId) REFERENCES Satislar(Id),
                     FOREIGN KEY (UrunId) REFERENCES Urunler(Id)
                 );
+
+                CREATE TABLE IF NOT EXISTS Personeller (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Ad TEXT NOT NULL,
+                    Soyad TEXT NOT NULL,
+                    Sifre TEXT NOT NULL,
+                    OlusturmaTarihi TEXT DEFAULT (datetime('now','localtime'))
+                );
             ";
             cmd.ExecuteNonQuery();
+
+            // Add PersonelId column to Satislar if it doesn't exist (migration)
+            try
+            {
+                cmd.CommandText = "ALTER TABLE Satislar ADD COLUMN PersonelId INTEGER";
+                cmd.ExecuteNonQuery();
+            }
+            catch { /* Column already exists */ }
 
             // Seed default category if empty
             cmd.CommandText = "SELECT COUNT(*) FROM Kategoriler";
@@ -77,6 +94,15 @@ namespace PosProjesi.Database
                     INSERT INTO Kategoriler (Ad) VALUES ('Temizlik');
                     INSERT INTO Kategoriler (Ad) VALUES ('Kırtasiye');
                 ";
+                cmd.ExecuteNonQuery();
+            }
+
+            // Seed default admin personel if empty
+            cmd.CommandText = "SELECT COUNT(*) FROM Personeller";
+            var personelCount = Convert.ToInt64(cmd.ExecuteScalar());
+            if (personelCount == 0)
+            {
+                cmd.CommandText = "INSERT INTO Personeller (Ad, Soyad, Sifre) VALUES ('Admin', 'Yönetici', '1234')";
                 cmd.ExecuteNonQuery();
             }
         }

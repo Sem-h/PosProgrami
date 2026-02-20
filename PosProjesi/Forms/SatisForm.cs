@@ -590,7 +590,7 @@ namespace PosProjesi.Forms
             {
                 try
                 {
-                    var satis = new Satis { ToplamTutar = toplam, OdemeTipi = odemeTipi, KasiyerAdi = "Kasiyer" };
+                    var satis = new Satis { ToplamTutar = toplam, OdemeTipi = odemeTipi, KasiyerAdi = Program.ActivePersonel?.TamAd ?? "Kasiyer", PersonelId = Program.ActivePersonel?.Id };
                     var satisId = _satisRepo.CreateSatis(satis, _sepet.ToList());
                     MessageBox.Show($"Satış tamamlandı!\nFiş No: {satisId}  Toplam: ₺{toplam:N2}",
                         "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);

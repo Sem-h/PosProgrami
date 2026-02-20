@@ -1,5 +1,6 @@
 using PosProjesi.Database;
 using PosProjesi.Forms;
+using PosProjesi.Models;
 using PosProjesi.Services;
 using PosProjesi.UI;
 
@@ -7,6 +8,8 @@ namespace PosProjesi;
 
 static class Program
 {
+    public static Personel? ActivePersonel { get; set; }
+
     [STAThread]
     static void Main()
     {
@@ -39,6 +42,17 @@ static class Program
             }
         }
         catch { }
+
+        // Personel login
+        using (var loginForm = new PersonelLoginForm())
+        {
+            var loginResult = loginForm.ShowDialog();
+            if (loginResult != DialogResult.OK || loginForm.SelectedPersonel == null)
+            {
+                return; // User cancelled — exit app
+            }
+            ActivePersonel = loginForm.SelectedPersonel;
+        }
 
         // Run main application
         Application.Run(new MainForm());

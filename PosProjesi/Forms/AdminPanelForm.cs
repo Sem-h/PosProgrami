@@ -43,6 +43,7 @@ namespace PosProjesi.Forms
                 ("Excel Dışa Aktar",   "Ürünleri Excel dosyasına aktar",                     "📤", Color.FromArgb(46, 204, 113), ExportToExcel),
                 ("Excel İçe Aktar",    "Excel dosyasından ürün ekle",                        "📥", Color.FromArgb(231, 76, 60),  ImportFromExcel),
                 ("Güncelleme Kontrol", "Yeni sürüm kontrolü yap ve güncelle",                "🔄", Theme.AccentGreen,  CheckForUpdate),
+                ("Personel Yönetimi", "Kasa personeli ekle, düzenle ve sil",                "👤", Color.FromArgb(155, 89, 182), () => new PersonelYonetimForm().ShowDialog()),
                 ("Geri Dön",           "Ana menüye geri dön",                                "↩️",  Theme.TextMuted,    () => this.Close()),
             };
 

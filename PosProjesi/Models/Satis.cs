@@ -7,5 +7,6 @@ namespace PosProjesi.Models
         public decimal ToplamTutar { get; set; }
         public string OdemeTipi { get; set; } = string.Empty;
         public string? KasiyerAdi { get; set; }
+        public int? PersonelId { get; set; }
     }
 }

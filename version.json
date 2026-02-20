@@ -1,6 +1,6 @@
 {
-  "version": "1.0.7",
-  "notes": "Splash ekran buyutme",
+  "version": "1.0.8",
+  "notes": "Personel yonetim sistemi, personel giris ekrani, satislara personel kaydi, satis ekrani tile dinamik genislik",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe"

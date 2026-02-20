@@ -17,8 +17,8 @@ namespace PosProjesi.DataAccess
             {
                 // Insert sale header
                 var satisId = db.ExecuteScalar<int>(
-                    @"INSERT INTO Satislar (ToplamTutar, OdemeTipi, KasiyerAdi) 
-                      VALUES (@ToplamTutar, @OdemeTipi, @KasiyerAdi);
+                    @"INSERT INTO Satislar (ToplamTutar, OdemeTipi, KasiyerAdi, PersonelId) 
+                      VALUES (@ToplamTutar, @OdemeTipi, @KasiyerAdi, @PersonelId);
                       SELECT last_insert_rowid();",
                     satis, transaction);
 
@@ -47,7 +47,7 @@ namespace PosProjesi.DataAccess
             }
         }
 
-        public List<Satis> GetSatislar(DateTime? baslangic = null, DateTime? bitis = null)
+        public List<Satis> GetSatislar(DateTime? baslangic = null, DateTime? bitis = null, int? personelId = null)
         {
             using var db = DatabaseHelper.GetConnection();
             var sql = "SELECT * FROM Satislar";
@@ -57,6 +57,8 @@ namespace PosProjesi.DataAccess
                 conditions.Add("SatisTarihi >= @Baslangic");
             if (bitis.HasValue)
                 conditions.Add("SatisTarihi <= @Bitis");
+            if (personelId.HasValue)
+                conditions.Add("PersonelId = @PersonelId");
 
             if (conditions.Count > 0)
                 sql += " WHERE " + string.Join(" AND ", conditions);
@@ -66,7 +68,8 @@ namespace PosProjesi.DataAccess
             return db.Query<Satis>(sql, new
             {
                 Baslangic = baslangic?.ToString("yyyy-MM-dd 00:00:00"),
-                Bitis = bitis?.ToString("yyyy-MM-dd 23:59:59")
+                Bitis = bitis?.ToString("yyyy-MM-dd 23:59:59"),
+                PersonelId = personelId
             }).ToList();
         }
 
