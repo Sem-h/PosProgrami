@@ -20,23 +20,30 @@ static class Program
             splash.ShowDialog();
         }
 
-        // Check if update arrived while app was closed
-        if (UpdateService.HasPendingUpdate(out var pendingVersion))
+        // Check for update at startup (active check)
+        try
         {
-            var result = MessageBox.Show(
-                $"Yeni bir güncelleme mevcut: v{pendingVersion}\n" +
-                $"Mevcut sürüm: v{UpdateService.CurrentVersion}\n\n" +
-                "Şimdi güncellemek ister misiniz?",
-                "Güncelleme Bildirimi",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Information);
-
-            if (result == DialogResult.Yes)
+            using var startupService = new UpdateService();
+            var info = startupService.CheckOnceAsync().GetAwaiter().GetResult();
+            if (info != null && info.Files != null && info.Files.Count > 0)
             {
-                ApplyStartupUpdate();
-                return; // App will restart via batch script
+                var result = MessageBox.Show(
+                    $"Yeni bir güncelleme mevcut: v{info.Version}\n" +
+                    $"Mevcut sürüm: v{UpdateService.CurrentVersion}\n\n" +
+                    $"{info.Notes}\n\n" +
+                    "Şimdi güncellemek ister misiniz?",
+                    "Güncelleme Bildirimi",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information);
+
+                if (result == DialogResult.Yes)
+                {
+                    ApplyStartupUpdate();
+                    return; // App will restart via batch script
+                }
             }
         }
+        catch { }
 
         // Run main application
         Application.Run(new MainForm());
