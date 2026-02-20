@@ -94,7 +94,12 @@ namespace PosProjesi.Services
                 {
                     var fileName = info.Files[i];
                     var url = $"{ReleaseBaseUrl}/{fileName}?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-                    var destPath = Path.Combine(UpdateDir, fileName);
+                    var destPath = Path.Combine(UpdateDir, fileName.Replace('/', Path.DirectorySeparatorChar));
+
+                    // Ensure subdirectory exists for files like runtimes/win-x64/native/e_sqlite3.dll
+                    var destDir = Path.GetDirectoryName(destPath);
+                    if (!string.IsNullOrEmpty(destDir) && !Directory.Exists(destDir))
+                        Directory.CreateDirectory(destDir);
 
                     var bytes = await _http.GetByteArrayAsync(url);
                     await File.WriteAllBytesAsync(destPath, bytes);
@@ -114,7 +119,7 @@ if not errorlevel 1 (
     timeout /t 1 /nobreak >nul
     goto waitloop
 )
-xcopy ""{UpdateDir}\*.*"" ""{AppDir}"" /Y /Q >nul 2>nul
+xcopy ""{UpdateDir}\*"" ""{AppDir}"" /Y /Q /E /I >nul 2>nul
 start """" ""{Path.Combine(AppDir, exeName)}""
 timeout /t 2 /nobreak >nul
 rmdir /S /Q ""{UpdateDir}"" 2>nul
