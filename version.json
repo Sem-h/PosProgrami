@@ -12,9 +12,6 @@
     "SQLitePCLRaw.batteries_v2.dll",
     "SQLitePCLRaw.core.dll",
     "SQLitePCLRaw.provider.e_sqlite3.dll",
-    "Svg.dll",
-    "runtimes/win-x64/native/e_sqlite3.dll",
-    "runtimes/win-x86/native/e_sqlite3.dll",
-    "runtimes/win-arm64/native/e_sqlite3.dll"
+    "Svg.dll"
   ]
 }
