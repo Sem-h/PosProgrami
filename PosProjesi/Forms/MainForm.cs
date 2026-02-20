@@ -346,33 +346,40 @@ namespace PosProjesi.Forms
                 g.FillRectangle(accentBrush, 0, 0, card.Width, 4);
                 g.ResetClip();
 
+                // Dynamic Y positions based on card height
+                int ch = card.Height;
+                int iconY = 16;
+                int titleY = iconY + 52;       // spaced below icon
+                int descY = titleY + 30;       // spaced below title
+                int badgeY = ch - 40;          // pinned to bottom
+
                 // Icon
-                using var iconFont = new Font("Segoe UI Emoji", 28);
-                TextRenderer.DrawText(g, icon, iconFont, new Point(20, 20), accent,
+                using var iconFont = new Font("Segoe UI Emoji", 26);
+                TextRenderer.DrawText(g, icon, iconFont, new Point(24, iconY), accent,
                     TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
                 // Title
-                using var titleFont = new Font("Segoe UI", 16, FontStyle.Bold);
-                TextRenderer.DrawText(g, title, titleFont, new Point(20, 70), Theme.TextPrimary,
+                using var titleFont = new Font("Segoe UI", 15, FontStyle.Bold);
+                TextRenderer.DrawText(g, title, titleFont, new Point(24, titleY), Theme.TextPrimary,
                     TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
                 // Description
                 using var descFont = new Font("Segoe UI", 9.5f);
-                var descRect = new Rectangle(20, 100, card.Width - 40, 50);
+                var descRect = new Rectangle(24, descY, card.Width - 50, badgeY - descY - 4);
                 TextRenderer.DrawText(g, desc, descFont, descRect, Theme.TextSecondary,
                     TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
 
                 // Badge at bottom-left
                 using var badgeFont = new Font("Segoe UI", 8, FontStyle.Bold);
                 var badgeSize = TextRenderer.MeasureText(badge, badgeFont);
-                var badgeRect = new Rectangle(18, card.Height - 34, badgeSize.Width + 14, 22);
+                var badgeRect = new Rectangle(22, badgeY, badgeSize.Width + 14, 24);
                 using var badgePath = Theme.RoundedRect(badgeRect, 5);
                 using var badgeBg = new SolidBrush(Color.FromArgb(30, accent.R, accent.G, accent.B));
                 g.FillPath(badgeBg, badgePath);
                 using var badgeBorderPen = new Pen(Color.FromArgb(60, accent.R, accent.G, accent.B), 1);
                 g.DrawPath(badgeBorderPen, badgePath);
                 TextRenderer.DrawText(g, badge, badgeFont,
-                    new Point(25, card.Height - 31), accent, TextFormatFlags.NoPadding);
+                    new Point(29, badgeY + 4), accent, TextFormatFlags.NoPadding);
 
                 // Hover arrow
                 if (isHover)
