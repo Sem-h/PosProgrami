@@ -1,8 +1,17 @@
 {
-  "version": "1.0.8",
+  "version": "1.0.9",
   "notes": "Personel yonetim sistemi, personel giris ekrani, satislara personel kaydi, satis ekrani tile dinamik genislik",
   "files": [
     "PosProjesi.dll",
-    "PosProjesi.exe"
+    "PosProjesi.exe",
+    "PosProjesi.deps.json",
+    "PosProjesi.runtimeconfig.json",
+    "Dapper.dll",
+    "ExCSS.dll",
+    "Microsoft.Data.Sqlite.dll",
+    "SQLitePCLRaw.batteries_v2.dll",
+    "SQLitePCLRaw.core.dll",
+    "SQLitePCLRaw.provider.e_sqlite3.dll",
+    "Svg.dll"
   ]
 }
