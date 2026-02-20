@@ -23,6 +23,7 @@ namespace PosProjesi.Forms
         private void InitializeComponent()
         {
             Theme.ApplyFormDefaults(this, "Verimek POS");
+            this.WindowState = FormWindowState.Maximized;
             this.Size = new Size(1050, 680);
             this.MinimumSize = new Size(900, 550);
             this.DoubleBuffered = true;
@@ -61,9 +62,10 @@ namespace PosProjesi.Forms
             // Sidebar nav items
             var navItems = new (string icon, string text, Color accent, Action action)[]
             {
-                ("🏠", "Ana Sayfa",       Theme.AccentBlue,   () => {}),
-                ("🛒", "Satış Ekranı",    Theme.AccentGreen,  () => OpenSatisForm()),
-                ("⚙️", "Yönetim Paneli",  Theme.AccentOrange, () => OpenAdminPanel()),
+                ("🏠", "Ana Sayfa",         Theme.AccentBlue,   () => {}),
+                ("🛒", "Satış Ekranı",      Theme.AccentGreen,  () => OpenSatisForm()),
+                ("⚙️", "Yönetim Paneli",    Theme.AccentOrange, () => OpenAdminPanel()),
+                ("ℹ️",  "Program Hakkında",  Theme.AccentPurple, () => new HakkindaForm().ShowDialog()),
             };
 
             int btnY = 100;
@@ -88,7 +90,7 @@ namespace PosProjesi.Forms
                 TextRenderer.DrawText(g, "●", iconFont, new Point(22, 18), Theme.AccentGreen, TextFormatFlags.NoPadding);
                 using var verFont = new Font("Segoe UI", 8);
                 TextRenderer.DrawText(g, "Sistem Aktif", verFont, new Point(36, 17), Theme.TextSecondary, TextFormatFlags.NoPadding);
-                TextRenderer.DrawText(g, "v1.0.0  •  SQLite", verFont, new Point(22, 36), Theme.TextMuted, TextFormatFlags.NoPadding);
+                TextRenderer.DrawText(g, $"v{Services.UpdateService.CurrentVersion}  •  SQLite", verFont, new Point(22, 36), Theme.TextMuted, TextFormatFlags.NoPadding);
             };
             _sidePanel.Controls.Add(versionPanel);
 
@@ -349,8 +351,8 @@ namespace PosProjesi.Forms
                 // Dynamic Y positions based on card height
                 int ch = card.Height;
                 int iconY = 16;
-                int titleY = iconY + 52;       // spaced below icon
-                int descY = titleY + 30;       // spaced below title
+                int titleY = iconY + 62;       // +10px more spacing
+                int descY = titleY + 40;       // +10px more spacing
                 int badgeY = ch - 40;          // pinned to bottom
 
                 // Icon

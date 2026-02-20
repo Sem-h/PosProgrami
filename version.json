@@ -1,6 +1,6 @@
 {
-  "version": "1.0.2",
-  "notes": "Yönetim paneli ve ana ekran responsive düzenleme",
+  "version": "1.0.3",
+  "notes": "Hakkında sayfası, güncelleme kontrol butonu, tam ekran açılış",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe"
