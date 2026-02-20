@@ -1,6 +1,6 @@
 {
-  "version": "1.0.3",
-  "notes": "Hakkında sayfası, güncelleme kontrol butonu, tam ekran açılış",
+  "version": "1.0.4",
+  "notes": "Sidebar Verimek branding, kart aralık düzeltmeleri",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe"

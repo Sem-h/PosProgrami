@@ -100,6 +100,19 @@ namespace PosProjesi.Forms
             exitBtn.Click += (s, e) => this.Close();
             _sidePanel.Controls.Add(exitBtn);
 
+            // Verimek branding at very bottom
+            var brandPanel = new Panel { Dock = DockStyle.Bottom, Height = 28 };
+            brandPanel.Paint += (s, e) =>
+            {
+                var g = e.Graphics;
+                g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+                using var font = new Font("Segoe UI", 7.5f);
+                TextRenderer.DrawText(g, "Verimek Telekomünikasyon", font,
+                    new Rectangle(0, 4, brandPanel.Width, 20), Theme.TextMuted,
+                    TextFormatFlags.HorizontalCenter);
+            };
+            _sidePanel.Controls.Add(brandPanel);
+
             // Sidebar right border
             var sep = new Panel { Dock = DockStyle.Right, Width = 1, BackColor = Theme.Border };
             _sidePanel.Controls.Add(sep);
