@@ -1,6 +1,6 @@
 {
-  "version": "1.1.2",
-  "notes": "DPI uyumlulugu duzeltildi, splash ekrani tum ekranlarda ayni gorunuyor",
+  "version": "1.1.3",
+  "notes": "Logo DLL icine gomuldu, tum PC lerde calisir, DPI uyumluluk ve dikey hizalama duzeltildi",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",

@@ -126,6 +126,29 @@ namespace PosProjesi.Forms
         {
             try
             {
+                // Try embedded resource first (always available in DLL)
+                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                var resourceName = assembly.GetManifestResourceNames()
+                    .FirstOrDefault(n => n.EndsWith("verimek-logo3.svg", StringComparison.OrdinalIgnoreCase));
+
+                if (resourceName != null)
+                {
+                    using var stream = assembly.GetManifestResourceStream(resourceName);
+                    if (stream != null)
+                    {
+                        var svgDoc = SvgDocument.Open<SvgDocument>(stream);
+                        // SVG has natural aspect ratio ~245:45 (wide logo)
+                        int logoWidth = Scale(520);
+                        float aspectRatio = svgDoc.ViewBox.Height / svgDoc.ViewBox.Width;
+                        int logoHeight = (int)(logoWidth * aspectRatio);
+                        svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, logoWidth);
+                        svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, logoHeight);
+                        _logoImage = svgDoc.Draw();
+                        return;
+                    }
+                }
+
+                // Fallback: try file paths
                 var possiblePaths = new[]
                 {
                     Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "image", "verimek-logo3.svg"),
@@ -136,10 +159,12 @@ namespace PosProjesi.Forms
                 string? svgPath = possiblePaths.FirstOrDefault(File.Exists);
                 if (svgPath != null)
                 {
-                    int logoSize = Scale(520);
                     var svgDoc = SvgDocument.Open(svgPath);
-                    svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, logoSize);
-                    svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, logoSize);
+                    int logoWidth = Scale(520);
+                    float aspectRatio = svgDoc.ViewBox.Height / svgDoc.ViewBox.Width;
+                    int logoHeight = (int)(logoWidth * aspectRatio);
+                    svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, logoWidth);
+                    svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, logoHeight);
                     _logoImage = svgDoc.Draw();
                 }
             }
@@ -182,8 +207,26 @@ namespace PosProjesi.Forms
             };
             g.FillPath(glow2Brush, glow2Path);
 
-            int centerX = this.Width / 2;
-            int currentY = Scale(42);
+            // --- Calculate total content height so we can center vertically ---
+            using var typeFont = new Font("Consolas", 24f * _dpi, FontStyle.Bold, GraphicsUnit.Pixel);
+            using var subFont = new Font("Segoe UI", 15f * _dpi, FontStyle.Regular, GraphicsUnit.Pixel);
+            var subText = "POS Satış Sistemi";
+
+            int logoH = 0;
+            if (_logoImage != null)
+            {
+                logoH = _logoImage.Height;
+            }
+            else
+            {
+                using var fallbackFont = new Font("Segoe UI", 44f * _dpi, FontStyle.Bold, GraphicsUnit.Pixel);
+                logoH = (int)g.MeasureString("Verimek", fallbackFont).Height;
+            }
+
+            int typeH = TextRenderer.MeasureText(FullText, typeFont).Height;
+            int subH = (int)g.MeasureString(subText, subFont).Height;
+            int totalH = logoH + Scale(18) + typeH + Scale(12) + subH;
+            int currentY = (this.Height - totalH) / 2;
 
             // Logo
             if (_logoImage != null)
@@ -203,9 +246,7 @@ namespace PosProjesi.Forms
 
             // ── Typewriter text: "Verimek Telekomünikasyon" ──
             var displayText = FullText[.._displayLen];
-            using var typeFont = new Font("Consolas", 24f * _dpi, FontStyle.Bold, GraphicsUnit.Pixel);
 
-            var textSize = TextRenderer.MeasureText(displayText + "|", typeFont);
             int textX = (this.Width - TextRenderer.MeasureText(FullText, typeFont).Width) / 2;
             int textY = currentY;
 
@@ -222,14 +263,12 @@ namespace PosProjesi.Forms
                 g.FillRectangle(cursorBrush, cursorX, textY + Scale(2), Scale(3), Scale(34));
             }
 
-            currentY = textY + Scale(48);
+            currentY = textY + typeH + Scale(12);
 
             // Subtitle
-            var subText = "POS Satış Sistemi";
-            using var sf = new Font("Segoe UI", 15f * _dpi, FontStyle.Regular, GraphicsUnit.Pixel);
-            var subSize = g.MeasureString(subText, sf);
+            var subSize = g.MeasureString(subText, subFont);
             using var subBrush = new SolidBrush(Theme.TextSecondary);
-            g.DrawString(subText, sf, subBrush, (this.Width - subSize.Width) / 2, currentY);
+            g.DrawString(subText, subFont, subBrush, (this.Width - subSize.Width) / 2, currentY);
 
             // Version at bottom-right
             using var verFont = new Font("Segoe UI", 9f * _dpi, FontStyle.Regular, GraphicsUnit.Pixel);
