@@ -15,6 +15,20 @@ static class Program
     {
         ApplicationConfiguration.Initialize();
 
+        // Global exception handler so app doesn't crash silently
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += (s, e) =>
+        {
+            MessageBox.Show($"Beklenmeyen hata: {e.Exception.Message}\n\n{e.Exception.StackTrace}",
+                "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        };
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            if (e.ExceptionObject is Exception ex)
+                MessageBox.Show($"Kritik hata: {ex.Message}\n\n{ex.StackTrace}",
+                    "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        };
+
         // Initialize database
         DatabaseHelper.InitializeDatabase();
 
