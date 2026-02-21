@@ -178,7 +178,12 @@ PosProjesi/
 ├── 📁 Services/
 │   └── UpdateService.cs          # Otomatik güncelleme servisi
 ├── 📁 UI/
-│   └── Theme.cs                  # Merkezi tasarım sistemi
+│   ├── Theme.cs                  # Merkezi tasarım sistemi
+│   ├── UpdatePromptDialog.cs     # Güncelleme onay diyaloğu
+│   └── UpdateToastPanel.cs       # Güncelleme bildirim paneli
+├── 📁 Resources/
+│   ├── app.ico                   # Uygulama ikonu
+│   └── verimek-logo3.svg         # Verimek vektörel logosu
 └── Program.cs                    # Uygulama giriş noktası
 ```
 
@@ -212,7 +217,7 @@ Uygulama, GitHub üzerinden otomatik güncelleme kontrolü yapar:
 
 | Sürüm | Tarih | Değişiklikler |
 |-------|-------|---------------|
-| **1.2.0** | 2026-02-21 | Cafe masa yönetim sistemi, ürün resim desteği, masa bazlı sipariş takibi, görsel masa seçim ekranı, müşteri ekranında ürün resmi |
+| **1.2.0** | 2026-02-21 | Cafe masa yönetim sistemi, ürün resim desteği, masa bazlı sipariş takibi, görsel masa seçim ekranı, müşteri ekranında ürün resmi, uygulama ikonu, portable publish ile runtime sorunu çözümü, setup installer |
 | **1.1.0** | 2026-02-21 | Personel yönetim sistemi, personel giriş ekranı, satışlara personel kaydı, satış ekranı tile dinamik genişlik |
 | **1.0.7** | 2026-02-20 | Satış ekranı iyileştirmeleri, hata düzeltmeleri |
 | **1.0.0** | 2026-02-15 | İlk sürüm — temel POS işlevleri |
