@@ -1,6 +1,6 @@
 {
-  "version": "1.1.1",
-  "notes": "Splash ekrani buyutuldu, README guncellendi",
+  "version": "1.1.2",
+  "notes": "DPI uyumlulugu duzeltildi, splash ekrani tum ekranlarda ayni gorunuyor",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",
