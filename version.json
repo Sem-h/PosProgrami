@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "notes": "Personel yonetim sistemi, personel giris ekrani, satislara personel kaydi, satis ekrani tile dinamik genislik, tam bagimlilik guncelleme",
+  "version": "1.1.1",
+  "notes": "Splash ekrani buyutuldu, README guncellendi",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",

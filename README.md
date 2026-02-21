@@ -4,7 +4,7 @@
 
 ### Modern Satış Noktası Uygulaması
 
-[![Version](https://img.shields.io/badge/Sürüm-1.1.0-blue?style=for-the-badge)]()
+[![Version](https://img.shields.io/badge/Sürüm-1.1.1-blue?style=for-the-badge)]()
 [![.NET](https://img.shields.io/badge/.NET_9-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/)
