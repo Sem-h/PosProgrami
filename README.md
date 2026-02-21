@@ -4,6 +4,7 @@
 
 ### Modern Satış Noktası Uygulaması
 
+[![Version](https://img.shields.io/badge/Sürüm-1.1.0-blue?style=for-the-badge)]()
 [![.NET](https://img.shields.io/badge/.NET_9-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/)
@@ -141,9 +142,9 @@ PosProjesi/
 │   ├── UrunYonetimForm.cs        # Ürün yönetimi
 │   ├── KategoriYonetimForm.cs    # Kategori yönetimi
 │   ├── PersonelYonetimForm.cs    # Personel yönetimi
-│   ├── AdminLoginForm.cs        # Admin giriş formu
+│   ├── AdminLoginForm.cs         # Admin giriş formu
 │   ├── MusteriEkranForm.cs       # Müşteri ekranı
-│   └── HakkindaForm.cs          # Hakkında ekranı
+│   └── HakkindaForm.cs           # Hakkında ekranı
 ├── 📁 Services/
 │   └── UpdateService.cs          # Otomatik güncelleme servisi
 ├── 📁 UI/
@@ -174,6 +175,16 @@ Uygulama, GitHub üzerinden otomatik güncelleme kontrolü yapar:
 2. Yeni sürüm tespit edildiğinde kullanıcıya bildirim gösterilir
 3. Güncelleme dosyaları `release/` klasöründen indirilir
 4. Otomatik yükleme scripti ile uygulama güncellenir
+
+---
+
+## 📋 Sürüm Geçmişi
+
+| Sürüm | Tarih | Değişiklikler |
+|-------|-------|---------------|
+| **1.1.0** | 2026-02-21 | Personel yönetim sistemi, personel giriş ekranı, satışlara personel kaydı, satış ekranı tile dinamik genişlik, tam bağımlılık güncelleme |
+| **1.0.7** | 2026-02-20 | Satış ekranı iyileştirmeleri, hata düzeltmeleri |
+| **1.0.0** | 2026-02-15 | İlk sürüm — temel POS işlevleri |
 
 ---
 

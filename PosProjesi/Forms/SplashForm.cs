@@ -30,7 +30,7 @@ namespace PosProjesi.Forms
         {
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Size = new Size(800, 580);
+            this.Size = new Size(950, 680);
             this.BackColor = Theme.BgDark;
             this.DoubleBuffered = true;
             this.ShowInTaskbar = false;
@@ -125,8 +125,8 @@ namespace PosProjesi.Forms
                 if (svgPath != null)
                 {
                     var svgDoc = SvgDocument.Open(svgPath);
-                    svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, 440);
-                    svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, 440);
+                    svgDoc.Width = new SvgUnit(SvgUnitType.Pixel, 520);
+                    svgDoc.Height = new SvgUnit(SvgUnitType.Pixel, 520);
                     _logoImage = svgDoc.Draw();
                 }
             }
@@ -151,7 +151,7 @@ namespace PosProjesi.Forms
 
             // Subtle radial glow behind logo
             using var glowPath = new GraphicsPath();
-            glowPath.AddEllipse(this.Width / 2 - 220, -40, 440, 320);
+            glowPath.AddEllipse(this.Width / 2 - 270, -50, 540, 400);
             using var glowBrush = new PathGradientBrush(glowPath)
             {
                 CenterColor = Color.FromArgb(18, Theme.AccentBlue),
@@ -161,7 +161,7 @@ namespace PosProjesi.Forms
 
             // Secondary glow (purple)
             using var glow2Path = new GraphicsPath();
-            glow2Path.AddEllipse(this.Width / 2 - 150, 50, 300, 200);
+            glow2Path.AddEllipse(this.Width / 2 - 190, 60, 380, 260);
             using var glow2Brush = new PathGradientBrush(glow2Path)
             {
                 CenterColor = Color.FromArgb(8, Theme.AccentPurple),
@@ -170,27 +170,27 @@ namespace PosProjesi.Forms
             g.FillPath(glow2Brush, glow2Path);
 
             int centerX = this.Width / 2;
-            int currentY = 36;
+            int currentY = 42;
 
             // Logo
             if (_logoImage != null)
             {
                 int logoX = (this.Width - _logoImage.Width) / 2;
                 g.DrawImage(_logoImage, logoX, currentY);
-                currentY += _logoImage.Height + 14;
+                currentY += _logoImage.Height + 18;
             }
             else
             {
-                using var f = new Font("Segoe UI", 38, FontStyle.Bold);
+                using var f = new Font("Segoe UI", 44, FontStyle.Bold);
                 var size = g.MeasureString("Verimek", f);
                 using var textBrush = new SolidBrush(Theme.AccentBlue);
                 g.DrawString("Verimek", f, textBrush, (this.Width - size.Width) / 2, currentY);
-                currentY += (int)size.Height + 14;
+                currentY += (int)size.Height + 18;
             }
 
             // ── Typewriter text: "Verimek Telekomünikasyon" ──
             var displayText = FullText[.._displayLen];
-            using var typeFont = new Font("Consolas", 20, FontStyle.Bold);
+            using var typeFont = new Font("Consolas", 24, FontStyle.Bold);
 
             var textSize = TextRenderer.MeasureText(displayText + "|", typeFont);
             int textX = (this.Width - TextRenderer.MeasureText(FullText, typeFont).Width) / 2;
@@ -206,14 +206,14 @@ namespace PosProjesi.Forms
                 var partSize = TextRenderer.MeasureText(displayText, typeFont);
                 int cursorX = textX + partSize.Width - 6;
                 using var cursorBrush = new SolidBrush(Theme.AccentBlue);
-                g.FillRectangle(cursorBrush, cursorX, textY + 2, 3, 28);
+                g.FillRectangle(cursorBrush, cursorX, textY + 2, 3, 34);
             }
 
-            currentY = textY + 40;
+            currentY = textY + 48;
 
             // Subtitle
             var subText = "POS Satış Sistemi";
-            using var sf = new Font("Segoe UI", 13);
+            using var sf = new Font("Segoe UI", 15);
             var subSize = g.MeasureString(subText, sf);
             using var subBrush = new SolidBrush(Theme.TextSecondary);
             g.DrawString(subText, sf, subBrush, (this.Width - subSize.Width) / 2, currentY);
