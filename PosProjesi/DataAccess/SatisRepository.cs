@@ -17,8 +17,8 @@ namespace PosProjesi.DataAccess
             {
                 // Insert sale header
                 var satisId = db.ExecuteScalar<int>(
-                    @"INSERT INTO Satislar (ToplamTutar, OdemeTipi, KasiyerAdi, PersonelId) 
-                      VALUES (@ToplamTutar, @OdemeTipi, @KasiyerAdi, @PersonelId);
+                    @"INSERT INTO Satislar (ToplamTutar, OdemeTipi, KasiyerAdi, PersonelId, MasaId, MasaAdi) 
+                      VALUES (@ToplamTutar, @OdemeTipi, @KasiyerAdi, @PersonelId, @MasaId, @MasaAdi);
                       SELECT last_insert_rowid();",
                     satis, transaction);
 

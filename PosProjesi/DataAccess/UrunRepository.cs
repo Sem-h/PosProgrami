@@ -55,8 +55,8 @@ namespace PosProjesi.DataAccess
         {
             using var db = DatabaseHelper.GetConnection();
             return db.ExecuteScalar<int>(
-                @"INSERT INTO Urunler (Barkod, Ad, KategoriId, AlisFiyati, SatisFiyati, Stok) 
-                  VALUES (@Barkod, @Ad, @KategoriId, @AlisFiyati, @SatisFiyati, @Stok);
+                @"INSERT INTO Urunler (Barkod, Ad, KategoriId, AlisFiyati, SatisFiyati, Stok, ResimYolu) 
+                  VALUES (@Barkod, @Ad, @KategoriId, @AlisFiyati, @SatisFiyati, @Stok, @ResimYolu);
                   SELECT last_insert_rowid();", urun);
         }
 
@@ -66,7 +66,8 @@ namespace PosProjesi.DataAccess
             db.Execute(
                 @"UPDATE Urunler SET 
                     Barkod = @Barkod, Ad = @Ad, KategoriId = @KategoriId,
-                    AlisFiyati = @AlisFiyati, SatisFiyati = @SatisFiyati, Stok = @Stok 
+                    AlisFiyati = @AlisFiyati, SatisFiyati = @SatisFiyati, Stok = @Stok,
+                    ResimYolu = @ResimYolu 
                   WHERE Id = @Id", urun);
         }
 

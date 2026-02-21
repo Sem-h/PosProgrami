@@ -63,7 +63,8 @@ namespace PosProjesi.Forms
             var navItems = new (string icon, string text, Color accent, Action action)[]
             {
                 ("🏠", "Ana Sayfa",         Theme.AccentBlue,   () => {}),
-                ("🛒", "Satış Ekranı",      Theme.AccentGreen,  () => OpenSatisForm()),
+                ("🍽️", "Masalar",           Theme.AccentTeal,   () => OpenMasaSecim()),
+                ("🛒", "Hızlı Satış",       Theme.AccentGreen,  () => OpenSatisForm()),
                 ("⚙️", "Yönetim Paneli",    Theme.AccentOrange, () => OpenAdminPanel()),
                 ("ℹ️",  "Program Hakkında",  Theme.AccentPurple, () => new HakkindaForm().ShowDialog()),
             };
@@ -152,8 +153,9 @@ namespace PosProjesi.Forms
             // ── Action Cards ──
             var actionCardDefs = new (string icon, string title, string desc, string badge, Color accent, Action action)[]
             {
-                ("🛒", "Yeni Satış Başlat", "Dokunmatik POS ekranını açarak\nhızlıca satış işlemi gerçekleştirin", "F1 Kısayol", Theme.AccentGreen, () => OpenSatisForm()),
-                ("⚙️", "Yönetim Paneli", "Ürün, kategori ve raporları\nyönetin, stok takibi yapın" , "Şifre Korumalı", Theme.AccentOrange, () => OpenAdminPanel()),
+                ("🍽️", "Masa Seçimi", "Masa seçerek sipariş alın\nveya mevcut siparişleri yönetin", "Cafe Modu", Theme.AccentTeal, () => OpenMasaSecim()),
+                ("🛒", "Hızlı Satış", "Masasız hızlı satış yapın\nPOS ekranını doğrudan açın", "F1 Kısayol", Theme.AccentGreen, () => OpenSatisForm()),
+                ("⚙️", "Yönetim Paneli", "Ürün, kategori ve raporları\nyönetin, stok takibi yapın", "Şifre Korumalı", Theme.AccentOrange, () => OpenAdminPanel()),
             };
 
             foreach (var (icon, title, desc, badge, accent, action) in actionCardDefs)
@@ -465,9 +467,14 @@ namespace PosProjesi.Forms
                 Math.Max(0, c.B - amount));
         }
 
+        private void OpenMasaSecim()
+        {
+            new MasaSecimForm().ShowDialog();
+        }
+
         private void OpenSatisForm()
         {
-            new SatisForm().ShowDialog();
+            new SatisForm(null).ShowDialog();
         }
 
         private void OpenAdminPanel()

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using PosProjesi.DataAccess;
 using PosProjesi.Models;
 using PosProjesi.UI;
@@ -9,7 +10,9 @@ namespace PosProjesi.Forms
         private readonly UrunRepository _urunRepo = new();
         private readonly SatisRepository _satisRepo = new();
         private readonly KategoriRepository _kategoriRepo = new();
+        private readonly MasaRepository _masaRepo = new();
         private readonly List<SatisDetay> _sepet = new();
+        private Masa? _masa;
 
         private FlowLayoutPanel pnlKategoriler = null!;
         private FlowLayoutPanel pnlUrunler = null!;
@@ -19,6 +22,9 @@ namespace PosProjesi.Forms
         private TextBox txtBarkod = null!;
         private Panel pnlUrunArea = null!;
         private MusteriEkranForm? _musteriEkran;
+
+        // Image cache to avoid repeated disk reads
+        private static readonly Dictionary<string, Image?> _imageCache = new();
 
         // Tile colors for categories
         private static readonly Color[] KategoriRenkleri = new[]
@@ -35,10 +41,22 @@ namespace PosProjesi.Forms
             Color.FromArgb(170, 80, 130),  // Pink
         };
 
-        public SatisForm()
+        public SatisForm(Masa? masa = null)
         {
+            _masa = masa;
             InitializeComponent();
             LoadKategoriler();
+
+            // Load existing cart from table if available
+            if (_masa != null && !string.IsNullOrEmpty(_masa.AktifSepet))
+            {
+                try
+                {
+                    var items = JsonSerializer.Deserialize<List<SatisDetay>>(_masa.AktifSepet);
+                    if (items != null) { _sepet.AddRange(items); RefreshSepet(); }
+                }
+                catch { }
+            }
         }
 
         private void InitializeComponent()
@@ -50,7 +68,10 @@ namespace PosProjesi.Forms
             this.DoubleBuffered = true;
 
             // ── HEADER ──
-            var header = Theme.CreateHeaderBar("Satış Ekranı", Theme.AccentGreen);
+            var headerText = "Satış Ekranı";
+            if (_masa != null)
+                headerText = $"🍽️  {_masa.MasaKategoriAdi} — {_masa.Ad}";
+            var header = Theme.CreateHeaderBar(headerText, _masa != null ? Theme.AccentTeal : Theme.AccentGreen);
 
             // ══════════════════════════════════════════════
             //   LAYOUT:  [Left: Categories+Products]  [Right: Cart]
@@ -273,8 +294,26 @@ namespace PosProjesi.Forms
 
             this.FormClosing += (s, e) =>
             {
+                // Save cart to table if there's an active table with items
+                if (_masa != null && _sepet.Count > 0)
+                {
+                    try
+                    {
+                        var json = JsonSerializer.Serialize(_sepet);
+                        _masaRepo.SaveSepet(_masa.Id, json);
+                    }
+                    catch { }
+                }
+                else if (_masa != null && _sepet.Count == 0)
+                {
+                    _masaRepo.ClearMasa(_masa.Id);
+                }
+
                 if (_musteriEkran != null && !_musteriEkran.IsDisposed)
                 { _musteriEkran.Close(); _musteriEkran = null; }
+                // Dispose cached images
+                foreach (var img in _imageCache.Values) img?.Dispose();
+                _imageCache.Clear();
             };
         }
 
@@ -382,11 +421,35 @@ namespace PosProjesi.Forms
             }
         }
 
+        private static Image? GetCachedImage(string? resimYolu)
+        {
+            if (string.IsNullOrEmpty(resimYolu)) return null;
+            if (_imageCache.TryGetValue(resimYolu, out var cached)) return cached;
+
+            var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, resimYolu);
+            if (File.Exists(fullPath))
+            {
+                try
+                {
+                    using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+                    var img = Image.FromStream(fs);
+                    _imageCache[resimYolu] = img;
+                    return img;
+                }
+                catch { _imageCache[resimYolu] = null; return null; }
+            }
+            _imageCache[resimYolu] = null;
+            return null;
+        }
+
         private Panel CreateUrunTile(Urun urun, int index)
         {
+            bool hasImage = !string.IsNullOrEmpty(urun.ResimYolu);
+            int tileHeight = hasImage ? 160 : 110;
+
             var tile = new Panel
             {
-                Size = new Size(155, 110),
+                Size = new Size(155, tileHeight),
                 Margin = new Padding(4),
                 Cursor = Cursors.Hand,
                 Tag = urun
@@ -417,7 +480,7 @@ namespace PosProjesi.Forms
                 using var borderPen = new Pen(borderColor, 1);
                 g.DrawPath(borderPen, path);
 
-                int nameY = 10; // default top position for name
+                int contentY = 0; // tracks vertical offset
 
                 // Stock status strip at top (if applicable)
                 if (outOfStock || lowStock)
@@ -427,11 +490,8 @@ namespace PosProjesi.Forms
                         : Color.FromArgb(200, 170, 120, 30);
                     var stripText = outOfStock ? "TÜKENDİ" : $"STOK AZ: {urun.Stok}";
 
-                    // Draw strip background across top
                     using var stripBrush = new SolidBrush(stripColor);
                     var stripRect = new Rectangle(1, 1, tile.Width - 3, 20);
-                    // Clip to rounded top corners
-                    var topClip = new Rectangle(0, 0, tile.Width, 22);
                     using var topPath = Theme.RoundedRect(new Rectangle(0, 0, tile.Width - 1, tile.Height - 1), 8);
                     g.SetClip(topPath);
                     g.FillRectangle(stripBrush, stripRect);
@@ -443,13 +503,40 @@ namespace PosProjesi.Forms
                         new Point((tile.Width - textSize.Width) / 2, 2),
                         Color.White, TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
-                    nameY = 26; // push name below the strip
+                    contentY = 22;
+                }
+
+                // Product image
+                var img = GetCachedImage(urun.ResimYolu);
+                if (img != null)
+                {
+                    int imgAreaH = 70;
+                    int imgY = contentY + 4;
+                    // Center the image in the available width
+                    double ratio = Math.Min((double)(tile.Width - 20) / img.Width, (double)imgAreaH / img.Height);
+                    int drawW = (int)(img.Width * ratio);
+                    int drawH = (int)(img.Height * ratio);
+                    int drawX = (tile.Width - drawW) / 2;
+                    int drawY = imgY + (imgAreaH - drawH) / 2;
+
+                    // Clip to rounded rect
+                    using var clipPath = Theme.RoundedRect(new Rectangle(0, 0, tile.Width - 1, tile.Height - 1), 8);
+                    g.SetClip(clipPath);
+                    g.DrawImage(img, drawX, drawY, drawW, drawH);
+                    g.ResetClip();
+
+                    contentY = imgY + imgAreaH + 2;
+                }
+                else
+                {
+                    contentY = contentY == 0 ? 10 : contentY + 4;
                 }
 
                 // Product name
                 using var nameFont = new Font("Segoe UI", 9.5f, FontStyle.Bold);
                 var nameColor = outOfStock ? Theme.TextMuted : Theme.TextPrimary;
-                var nameRect2 = new Rectangle(8, nameY, tile.Width - 16, 44);
+                int nameHeight = hasImage ? 34 : 44;
+                var nameRect2 = new Rectangle(8, contentY, tile.Width - 16, nameHeight);
                 TextRenderer.DrawText(g, urun.Ad, nameFont, nameRect2, nameColor,
                     TextFormatFlags.WordBreak | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
 
@@ -500,7 +587,7 @@ namespace PosProjesi.Forms
             }
 
             RefreshSepet();
-            _musteriEkran?.UrunEklendi(urun.Ad, urun.SatisFiyati, miktar);
+            _musteriEkran?.UrunEklendi(urun.Ad, urun.SatisFiyati, miktar, urun.ResimYolu);
             txtBarkod.Focus();
         }
 
@@ -590,15 +677,35 @@ namespace PosProjesi.Forms
             {
                 try
                 {
-                    var satis = new Satis { ToplamTutar = toplam, OdemeTipi = odemeTipi, KasiyerAdi = Program.ActivePersonel?.TamAd ?? "Kasiyer", PersonelId = Program.ActivePersonel?.Id };
+                    var satis = new Satis
+                    {
+                        ToplamTutar = toplam,
+                        OdemeTipi = odemeTipi,
+                        KasiyerAdi = Program.ActivePersonel?.TamAd ?? "Kasiyer",
+                        PersonelId = Program.ActivePersonel?.Id,
+                        MasaId = _masa?.Id,
+                        MasaAdi = _masa != null ? $"{_masa.MasaKategoriAdi} - {_masa.Ad}" : null
+                    };
                     var satisId = _satisRepo.CreateSatis(satis, _sepet.ToList());
                     MessageBox.Show($"Satış tamamlandı!\nFiş No: {satisId}  Toplam: ₺{toplam:N2}",
                         "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _musteriEkran?.SatisTamamlandi(toplam);
+
+                    // Clear table
+                    if (_masa != null)
+                    {
+                        _masaRepo.ClearMasa(_masa.Id);
+                        _masa = null; // Prevent double-save on FormClosing
+                    }
+
                     _sepet.Clear();
                     RefreshSepet();
                     txtBarkod.Clear();
                     txtBarkod.Focus();
+
+                    // If table-based, close form after sale
+                    if (satis.MasaId != null)
+                        this.Close();
                 }
                 catch (Exception ex)
                 {

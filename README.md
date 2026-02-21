@@ -4,13 +4,13 @@
 
 ### Modern Satış Noktası Uygulaması
 
-[![Version](https://img.shields.io/badge/Sürüm-1.1.1-blue?style=for-the-badge)]()
+[![Version](https://img.shields.io/badge/Sürüm-1.2.0-blue?style=for-the-badge)]()
 [![.NET](https://img.shields.io/badge/.NET_9-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/)
 [![License](https://img.shields.io/badge/Lisans-MIT-green?style=for-the-badge)](LICENSE)
 
-**Küçük ve orta ölçekli işletmeler için geliştirilmiş, modern arayüzlü, tam donanımlı POS (Satış Noktası) masaüstü uygulaması.**
+**Cafe, restoran ve perakende işletmeleri için geliştirilmiş, modern arayüzlü, tam donanımlı POS (Satış Noktası) masaüstü uygulaması.**
 
 ---
 
@@ -25,6 +25,7 @@
 ### 🛒 Satış Yönetimi
 - Barkod okuyucu desteği ile hızlı ürün ekleme
 - Kategorilere göre ürün filtreleme
+- Ürün resimli satış tile’ları
 - Dinamik sepet yönetimi
 - Nakit ve kredi kartı ödeme seçenekleri
 - Otomatik stok güncelleme
@@ -32,11 +33,34 @@
 </td>
 <td width="50%">
 
+### 🍽️ Cafe Masa Yönetimi
+- Masa kategorileri (Bahçe, İçerisi vb.)
+- Görsel masa seçim ekranı
+- 🟢 Boş / 🟠 Dolu masa durumu
+- Masa bazında sipariş takibi
+- Sepet masada otomatik korunur
+- Hızlı satış (• masasız) desteği
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
 ### 👥 Personel Yönetimi
 - Personel bazlı giriş sistemi
 - Her personel için güvenli şifre koruması
 - Satışlarda personel takibi
 - Personel ekleme, düzenleme ve silme (CRUD)
+
+</td>
+<td width="50%">
+
+### 🖼️ Ürün Resimleri
+- Ürünlere resim yükleme (JPG, PNG, BMP, WebP)
+- Otomatik 200×200 px boyutlandırma
+- Satış ekranında resimli ürün tile’ları
+- Müşteri ekranında ürün resmi gösterimi
+- Performans için bellek cacheleme
 
 </td>
 </tr>
@@ -56,6 +80,7 @@
 - Ürün yönetimi (Ekle / Düzenle / Sil)
 - Kategori yönetimi
 - Personel yönetimi
+- Masa yönetimi
 - Veritabanı yedekleme
 - CSV içe/dışa aktarma (Excel uyumlu)
 - Otomatik güncelleme kontrolü
@@ -108,7 +133,7 @@ dotnet run --project PosProjesi
 | Giriş Noktası | Kullanıcı | Şifre |
 |:---:|:---:|:---:|
 | **Personel Giriş Ekranı** | Admin Yönetici | `1234` |
-| **Yönetim Paneli Erişimi** | — | `admin123` |
+| **Yönetim Paneli Erişimi** | — | `1234` |
 
 > [!WARNING]
 > Güvenliğiniz için varsayılan şifreleri ilk girişten sonra değiştirmeniz önerilir.
@@ -125,23 +150,28 @@ PosProjesi/
 │   ├── UrunRepository.cs         # Ürün CRUD işlemleri
 │   ├── KategoriRepository.cs     # Kategori CRUD işlemleri
 │   ├── SatisRepository.cs        # Satış kayıt ve raporlama
-│   └── PersonelRepository.cs     # Personel yönetimi
+│   ├── PersonelRepository.cs     # Personel yönetimi
+│   └── MasaRepository.cs         # Masa ve kategori yönetimi
 ├── 📁 Models/
-│   ├── Urun.cs                   # Ürün modeli
+│   ├── Urun.cs                   # Ürün modeli (resim desteği)
 │   ├── Kategori.cs               # Kategori modeli
 │   ├── Satis.cs                  # Satış modeli
 │   ├── SatisDetay.cs             # Satış detay modeli
-│   └── Personel.cs               # Personel modeli
+│   ├── Personel.cs               # Personel modeli
+│   ├── Masa.cs                   # Masa modeli
+│   └── MasaKategori.cs           # Masa kategorisi modeli
 ├── 📁 Forms/
 │   ├── SplashForm.cs             # Açılış animasyonu
 │   ├── PersonelLoginForm.cs      # Personel giriş ekranı
 │   ├── MainForm.cs               # Ana dashboard
-│   ├── SatisForm.cs              # Satış ekranı
+│   ├── MasaSecimForm.cs          # Masa seçim ekranı
+│   ├── SatisForm.cs              # Satış ekranı (masa destekli)
 │   ├── RaporForm.cs              # Rapor ekranı
 │   ├── AdminPanelForm.cs         # Yönetim paneli
-│   ├── UrunYonetimForm.cs        # Ürün yönetimi
+│   ├── UrunYonetimForm.cs        # Ürün yönetimi (resim yükleme)
 │   ├── KategoriYonetimForm.cs    # Kategori yönetimi
 │   ├── PersonelYonetimForm.cs    # Personel yönetimi
+│   ├── MasaYonetimForm.cs        # Masa yönetimi
 │   ├── AdminLoginForm.cs         # Admin giriş formu
 │   ├── MusteriEkranForm.cs       # Müşteri ekranı
 │   └── HakkindaForm.cs           # Hakkında ekranı
@@ -182,7 +212,8 @@ Uygulama, GitHub üzerinden otomatik güncelleme kontrolü yapar:
 
 | Sürüm | Tarih | Değişiklikler |
 |-------|-------|---------------|
-| **1.1.0** | 2026-02-21 | Personel yönetim sistemi, personel giriş ekranı, satışlara personel kaydı, satış ekranı tile dinamik genişlik, tam bağımlılık güncelleme |
+| **1.2.0** | 2026-02-21 | Cafe masa yönetim sistemi, ürün resim desteği, masa bazlı sipariş takibi, görsel masa seçim ekranı, müşteri ekranında ürün resmi |
+| **1.1.0** | 2026-02-21 | Personel yönetim sistemi, personel giriş ekranı, satışlara personel kaydı, satış ekranı tile dinamik genişlik |
 | **1.0.7** | 2026-02-20 | Satış ekranı iyileştirmeleri, hata düzeltmeleri |
 | **1.0.0** | 2026-02-15 | İlk sürüm — temel POS işlevleri |
 

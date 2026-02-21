@@ -71,6 +71,22 @@ namespace PosProjesi.Database
                     Sifre TEXT NOT NULL,
                     OlusturmaTarihi TEXT DEFAULT (datetime('now','localtime'))
                 );
+
+                CREATE TABLE IF NOT EXISTS MasaKategorileri (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Ad TEXT NOT NULL,
+                    OlusturmaTarihi TEXT DEFAULT (datetime('now','localtime'))
+                );
+
+                CREATE TABLE IF NOT EXISTS Masalar (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Ad TEXT NOT NULL,
+                    MasaKategoriId INTEGER,
+                    Durum TEXT DEFAULT 'Boş',
+                    AktifSepet TEXT,
+                    OlusturmaTarihi TEXT DEFAULT (datetime('now','localtime')),
+                    FOREIGN KEY (MasaKategoriId) REFERENCES MasaKategorileri(Id)
+                );
             ";
             cmd.ExecuteNonQuery();
 
@@ -78,6 +94,14 @@ namespace PosProjesi.Database
             try
             {
                 cmd.CommandText = "ALTER TABLE Satislar ADD COLUMN PersonelId INTEGER";
+                cmd.ExecuteNonQuery();
+            }
+            catch { /* Column already exists */ }
+
+            // Add ResimYolu column to Urunler if it doesn't exist (migration)
+            try
+            {
+                cmd.CommandText = "ALTER TABLE Urunler ADD COLUMN ResimYolu TEXT";
                 cmd.ExecuteNonQuery();
             }
             catch { /* Column already exists */ }
@@ -103,6 +127,46 @@ namespace PosProjesi.Database
             if (personelCount == 0)
             {
                 cmd.CommandText = "INSERT INTO Personeller (Ad, Soyad, Sifre) VALUES ('Admin', 'Yönetici', '1234')";
+                cmd.ExecuteNonQuery();
+            }
+
+            // Add MasaId column to Satislar if it doesn't exist (migration)
+            try
+            {
+                cmd.CommandText = "ALTER TABLE Satislar ADD COLUMN MasaId INTEGER";
+                cmd.ExecuteNonQuery();
+            }
+            catch { /* Column already exists */ }
+
+            try
+            {
+                cmd.CommandText = "ALTER TABLE Satislar ADD COLUMN MasaAdi TEXT";
+                cmd.ExecuteNonQuery();
+            }
+            catch { /* Column already exists */ }
+
+            // Seed default masa kategorileri if empty
+            cmd.CommandText = "SELECT COUNT(*) FROM MasaKategorileri";
+            var masaKatCount = Convert.ToInt64(cmd.ExecuteScalar());
+            if (masaKatCount == 0)
+            {
+                cmd.CommandText = @"
+                    INSERT INTO MasaKategorileri (Ad) VALUES ('Bahçe');
+                    INSERT INTO MasaKategorileri (Ad) VALUES ('İçerisi');
+                ";
+                cmd.ExecuteNonQuery();
+
+                // Seed sample tables
+                cmd.CommandText = @"
+                    INSERT INTO Masalar (Ad, MasaKategoriId) VALUES ('B1 Masa', 1);
+                    INSERT INTO Masalar (Ad, MasaKategoriId) VALUES ('B2 Masa', 1);
+                    INSERT INTO Masalar (Ad, MasaKategoriId) VALUES ('B3 Masa', 1);
+                    INSERT INTO Masalar (Ad, MasaKategoriId) VALUES ('B4 Masa', 1);
+                    INSERT INTO Masalar (Ad, MasaKategoriId) VALUES ('İ1 Masa', 2);
+                    INSERT INTO Masalar (Ad, MasaKategoriId) VALUES ('İ2 Masa', 2);
+                    INSERT INTO Masalar (Ad, MasaKategoriId) VALUES ('İ3 Masa', 2);
+                    INSERT INTO Masalar (Ad, MasaKategoriId) VALUES ('İ4 Masa', 2);
+                ";
                 cmd.ExecuteNonQuery();
             }
         }

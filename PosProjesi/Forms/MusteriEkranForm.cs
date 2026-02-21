@@ -12,6 +12,7 @@ namespace PosProjesi.Forms
         private decimal _sonUrunFiyat = 0;
         private decimal _toplam = 0;
         private string _durum = "welcome";
+        private Image? _sonUrunResim = null;
 
         private System.Windows.Forms.Timer? _resetTimer;
         private System.Windows.Forms.Timer? _clockTimer;
@@ -88,11 +89,32 @@ namespace PosProjesi.Forms
             SafeRefresh();
         }
 
-        public void UrunEklendi(string urunAdi, decimal fiyat, int miktar)
+        public void UrunEklendi(string urunAdi, decimal fiyat, int miktar, string? resimYolu = null)
         {
             _sonUrunAdi = urunAdi;
             _sonUrunFiyat = fiyat * miktar;
+            LoadUrunResim(resimYolu);
             SafeRefresh();
+        }
+
+        private void LoadUrunResim(string? resimYolu)
+        {
+            _sonUrunResim?.Dispose();
+            _sonUrunResim = null;
+
+            if (!string.IsNullOrEmpty(resimYolu))
+            {
+                var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, resimYolu);
+                if (File.Exists(fullPath))
+                {
+                    try
+                    {
+                        using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+                        _sonUrunResim = Image.FromStream(fs);
+                    }
+                    catch { }
+                }
+            }
         }
 
         public void SatisTamamlandi(decimal toplam)
@@ -241,19 +263,39 @@ namespace PosProjesi.Forms
             // ── Last scanned item ──
             if (!string.IsNullOrEmpty(_sonUrunAdi))
             {
-                int barH = 48;
+                int imgSize = _sonUrunResim != null ? 80 : 0;
+                int barH = imgSize > 0 ? Math.Max(48, imgSize + 12) : 48;
+
                 using (var barBg = new SolidBrush(BgHighlight))
                     g.FillRectangle(barBg, pad, y, W - pad * 2, barH);
                 using (var accentBr = new SolidBrush(Green))
                     g.FillRectangle(accentBr, pad, y, 3, barH);
 
+                int textX = pad + 14;
+
+                // Draw product image if available
+                if (_sonUrunResim != null)
+                {
+                    int imgPad = 6;
+                    int imgX = pad + imgPad;
+                    int imgY = y + (barH - imgSize) / 2;
+                    double ratio = Math.Min((double)imgSize / _sonUrunResim.Width, (double)imgSize / _sonUrunResim.Height);
+                    int drawW = (int)(_sonUrunResim.Width * ratio);
+                    int drawH = (int)(_sonUrunResim.Height * ratio);
+                    int drawX = imgX + (imgSize - drawW) / 2;
+                    int drawY = imgY + (imgSize - drawH) / 2;
+                    g.DrawImage(_sonUrunResim, drawX, drawY, drawW, drawH);
+                    textX = imgX + imgSize + 10;
+                }
+
                 using var lnFont = new Font("Segoe UI", 13, FontStyle.Bold);
-                DrawText(g, _sonUrunAdi, lnFont, White, pad + 14, y + 12);
+                int textY = y + (barH - 20) / 2;
+                DrawText(g, _sonUrunAdi, lnFont, White, textX, textY);
 
                 using var lpFont = new Font("Segoe UI", 13, FontStyle.Bold);
                 var lpText = $"₺{_sonUrunFiyat:N2}";
                 var lpSize = MeasureText(g, lpText, lpFont);
-                DrawText(g, lpText, lpFont, Green, W - pad - lpSize.Width - 10, y + 12);
+                DrawText(g, lpText, lpFont, Green, W - pad - lpSize.Width - 10, textY);
 
                 y += barH + 6;
             }
@@ -343,6 +385,7 @@ namespace PosProjesi.Forms
         {
             _resetTimer?.Stop(); _resetTimer?.Dispose();
             _clockTimer?.Stop(); _clockTimer?.Dispose();
+            _sonUrunResim?.Dispose();
             base.OnFormClosing(e);
         }
     }

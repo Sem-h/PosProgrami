@@ -7,7 +7,7 @@ namespace PosProjesi.Forms
     {
         private TextBox txtSifre = null!;
         public bool GirisBasarili { get; private set; } = false;
-        private const string ADMIN_SIFRE = "admin123";
+        private const string ADMIN_SIFRE = "1234";
 
         public AdminLoginForm()
         {

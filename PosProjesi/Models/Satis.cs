@@ -8,5 +8,7 @@ namespace PosProjesi.Models
         public string OdemeTipi { get; set; } = string.Empty;
         public string? KasiyerAdi { get; set; }
         public int? PersonelId { get; set; }
+        public int? MasaId { get; set; }
+        public string? MasaAdi { get; set; }
     }
 }

@@ -10,9 +10,8 @@ publish/
 *.exe
 *.log
 
-## Installer ve setup istisna
-!installer/
-!installer/**
+## Installer ve setup
+installer/
 !setup/*.ico
 
 ## Release klasörü istisna (güncelleme dosyaları)

@@ -11,5 +11,6 @@ namespace PosProjesi.Models
         public decimal SatisFiyati { get; set; }
         public int Stok { get; set; }
         public string? OlusturmaTarihi { get; set; }
+        public string? ResimYolu { get; set; }
     }
 }
