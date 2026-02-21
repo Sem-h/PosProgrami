@@ -1,8 +1,8 @@
 ; Verimek POS Sistemi - Inno Setup Script
-; Ozellestirilmis kurulum sihirbazi
+; Premium kurulum sihirbazi - v1.2.0
 
 #define MyAppName "Verimek POS Sistemi"
-#define MyAppVersion "1.1.3"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "Verimek Telekomünikasyon"
 #define MyAppURL "https://github.com/Sem-h/PosProgrami"
 #define MyAppExeName "PosProjesi.exe"
@@ -30,24 +30,24 @@ WizardStyle=modern
 WizardSizePercent=110
 WizardImageFile=wizard_sidebar.bmp
 WizardSmallImageFile=wizard_small.bmp
+; Icon ayarlari - Setup, Program Ekle/Kaldir ve uygulama iconu
+SetupIconFile=app.ico
+UninstallDisplayName={#MyAppName}
+UninstallDisplayIcon={app}\{#MyAppExeName}
 ; Ek ozellikler
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 ; Minimum Windows surumu
 MinVersion=10.0
-SetupIconFile=app.ico
-; Uninstall ayarlari
-UninstallDisplayName={#MyAppName}
-UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
 Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
 
 [CustomMessages]
 turkish.WelcomeLabel1=Verimek POS Sistemi Kurulumu
-turkish.WelcomeLabel2=Bu sihirbaz, Verimek POS Sistemi v{#MyAppVersion} uygulamasini bilgisayariniza kuracaktir.%n%nDevam etmeden once tum diger uygulamalari kapatmaniz onerilir.
+turkish.WelcomeLabel2=Bu sihirbaz, Verimek POS Sistemi v{#MyAppVersion} uygulamasini bilgisayariniza kuracaktir.%n%nDevam etmeden once tum diger uygulamalari kapatmaniz onerilir.%n%nYenilikler:%n- Cafe masa yonetim sistemi%n- Urun resim destegi%n- Gorsel masa secim ekrani
 turkish.FinishedHeadingLabel=Verimek POS Sistemi Kuruldu!
-turkish.FinishedLabel=Verimek POS Sistemi basariyla bilgisayariniza yuklendi.%n%nUygulama, masaustu kisayolundan veya Baslat menusunden baslatilabilir.
+turkish.FinishedLabel=Verimek POS Sistemi v{#MyAppVersion} basariyla bilgisayariniza yuklendi.%n%nUygulama, masaustu kisayolundan veya Baslat menusunden baslatilabilir.
 
 [Tasks]
 Name: "desktopicon"; Description: "Masaüstü kısayolu oluştur"; GroupDescription: "Ek görevler:"; Flags: checkedonce
@@ -57,9 +57,11 @@ Name: "startupicon"; Description: "Windows başlangıcında otomatik çalıştı
 Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+; Baslat menusu
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
 Name: "{group}\{#MyAppName} Kaldır"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+; Masaustu kisayolu
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
 ; Windows baslangicinda calistir (istege bagli)
@@ -72,4 +74,8 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Verimek POS Sistemi'ni şimdi b
 Type: filesandordirs; Name: "{app}\database"
 Type: filesandordirs; Name: "{app}\image"
 Type: filesandordirs; Name: "{app}\_update"
+Type: filesandordirs; Name: "{app}\UrunResimleri"
 Type: files; Name: "{app}\lastcheck.txt"
+Type: files; Name: "{app}\pos_database.db"
+Type: files; Name: "{app}\pos_database.db-shm"
+Type: files; Name: "{app}\pos_database.db-wal"
