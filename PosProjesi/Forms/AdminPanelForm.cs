@@ -45,6 +45,7 @@ namespace PosProjesi.Forms
                 ("Güncelleme Kontrol", "Yeni sürüm kontrolü yap ve güncelle",                "🔄", Theme.AccentGreen,  CheckForUpdate),
                 ("Personel Yönetimi", "Kasa personeli ekle, düzenle ve sil",                "👤", Color.FromArgb(155, 89, 182), () => new PersonelYonetimForm().ShowDialog()),
                 ("Masa Yönetimi",     "Masa kategorileri ve masaları yönetin",             "🍽️", Theme.AccentTeal,              () => new MasaYonetimForm().ShowDialog()),
+                ("Fiş Ayarları",       "Yazıcı, fiş tasarımı ve işletme bilgileri",        "🖨️",  Color.FromArgb(243, 156, 18), () => new FisAyarlariForm().ShowDialog()),
                 ("Geri Dön",           "Ana menüye geri dön",                                "↩️",  Theme.TextMuted,    () => this.Close()),
             };
 

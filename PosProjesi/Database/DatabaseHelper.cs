@@ -87,6 +87,12 @@ namespace PosProjesi.Database
                     OlusturmaTarihi TEXT DEFAULT (datetime('now','localtime')),
                     FOREIGN KEY (MasaKategoriId) REFERENCES MasaKategorileri(Id)
                 );
+
+                CREATE TABLE IF NOT EXISTS Ayarlar (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Anahtar TEXT NOT NULL UNIQUE,
+                    Deger TEXT
+                );
             ";
             cmd.ExecuteNonQuery();
 

@@ -1,0 +1,47 @@
+using Dapper;
+using PosProjesi.Database;
+
+namespace PosProjesi.DataAccess
+{
+    public class AyarlarRepository
+    {
+        public string GetAyar(string key, string defaultValue = "")
+        {
+            using var db = DatabaseHelper.GetConnection();
+            var value = db.ExecuteScalar<string>(
+                "SELECT Deger FROM Ayarlar WHERE Anahtar = @Key",
+                new { Key = key });
+            return value ?? defaultValue;
+        }
+
+        public void SetAyar(string key, string value)
+        {
+            using var db = DatabaseHelper.GetConnection();
+            var exists = db.ExecuteScalar<int>(
+                "SELECT COUNT(*) FROM Ayarlar WHERE Anahtar = @Key",
+                new { Key = key });
+
+            if (exists > 0)
+            {
+                db.Execute(
+                    "UPDATE Ayarlar SET Deger = @Value WHERE Anahtar = @Key",
+                    new { Key = key, Value = value });
+            }
+            else
+            {
+                db.Execute(
+                    "INSERT INTO Ayarlar (Anahtar, Deger) VALUES (@Key, @Value)",
+                    new { Key = key, Value = value });
+            }
+        }
+
+        // Ayar anahtarları (constants)
+        public const string YaziciAdi = "YaziciAdi";
+        public const string IsletmeAdi = "IsletmeAdi";
+        public const string IsletmeAdres = "IsletmeAdres";
+        public const string IsletmeTelefon = "IsletmeTelefon";
+        public const string KagitGenisligi = "KagitGenisligi"; // "58" or "80"
+        public const string FisAltMesaj = "FisAltMesaj";
+        public const string FisYazdirmaAktif = "FisYazdirmaAktif"; // "1" or "0"
+    }
+}

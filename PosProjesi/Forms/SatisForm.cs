@@ -1,6 +1,7 @@
 using System.Text.Json;
 using PosProjesi.DataAccess;
 using PosProjesi.Models;
+using PosProjesi.Services;
 using PosProjesi.UI;
 
 namespace PosProjesi.Forms
@@ -687,6 +688,19 @@ namespace PosProjesi.Forms
                         MasaAdi = _masa != null ? $"{_masa.MasaKategoriAdi} - {_masa.Ad}" : null
                     };
                     var satisId = _satisRepo.CreateSatis(satis, _sepet.ToList());
+
+                    // Fiş yazdır (hata satışı engellemez)
+                    try
+                    {
+                        var fisYazici = new FisYaziciService();
+                        fisYazici.FisYazdir(satisId, satis, _sepet.ToList());
+                    }
+                    catch (Exception fisEx)
+                    {
+                        MessageBox.Show($"Fiş yazdırılamadı:\n{fisEx.Message}\n\nSatış kaydedildi.",
+                            "Yazıcı Uyarısı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+
                     MessageBox.Show($"Satış tamamlandı!\nFiş No: {satisId}  Toplam: ₺{toplam:N2}",
                         "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _musteriEkran?.SatisTamamlandi(toplam);
