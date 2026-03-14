@@ -1,6 +1,6 @@
 {
-  "version": "1.3.0",
-  "notes": "Fiş yazdırma: ESC/POS termal yazıcı desteği, Fiş Ayarları ekranı, işletme bilgileri ve kağıt genişliği ayarları",
+  "version": "1.3.1",
+  "notes": "Fiş yazdırma onay penceresi eklendi",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",

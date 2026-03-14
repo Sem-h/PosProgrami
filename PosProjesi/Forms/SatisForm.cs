@@ -689,11 +689,15 @@ namespace PosProjesi.Forms
                     };
                     var satisId = _satisRepo.CreateSatis(satis, _sepet.ToList());
 
-                    // Fiş yazdır (hata satışı engellemez)
+                    // Fiş yazdır (kullanıcıya sor)
                     try
                     {
-                        var fisYazici = new FisYaziciService();
-                        fisYazici.FisYazdir(satisId, satis, _sepet.ToList());
+                        if (MessageBox.Show("Fiş çıkartılsın mı?", "Fiş Yazdır",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        {
+                            var fisYazici = new FisYaziciService();
+                            fisYazici.FisYazdir(satisId, satis, _sepet.ToList());
+                        }
                     }
                     catch (Exception fisEx)
                     {
