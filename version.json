@@ -1,6 +1,6 @@
 {
-  "version": "1.3.2",
-  "notes": "Misafir ödeme tipi eklendi (ücretsiz hizmet)",
+  "version": "1.3.3",
+  "notes": "Müşteri ekranı otomatik 2. monitöre taşınıyor",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",

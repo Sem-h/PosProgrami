@@ -65,8 +65,17 @@ namespace PosProjesi.Forms
             {
                 var sec = screens.FirstOrDefault(s => !s.Primary) ?? screens[0];
                 this.StartPosition = FormStartPosition.Manual;
-                this.Bounds = sec.Bounds;
-                this.WindowState = FormWindowState.Maximized;
+                this.WindowState = FormWindowState.Normal;
+                this.Location = sec.Bounds.Location;
+                this.Size = sec.Bounds.Size;
+
+                // Ensure it stays on second screen after shown
+                this.Shown += (s, e) =>
+                {
+                    this.Location = sec.Bounds.Location;
+                    this.Size = sec.Bounds.Size;
+                    this.WindowState = FormWindowState.Maximized;
+                };
             }
             else
             {
