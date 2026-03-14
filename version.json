@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
-  "notes": "Cafe masa yönetim sistemi, ürün resim desteği, görsel masa seçim ekranı",
+  "version": "1.3.0",
+  "notes": "Fiş yazdırma: ESC/POS termal yazıcı desteği, Fiş Ayarları ekranı, işletme bilgileri ve kağıt genişliği ayarları",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",
