@@ -1,6 +1,6 @@
 {
-  "version": "1.3.3",
-  "notes": "Müşteri ekranı otomatik 2. monitöre taşınıyor",
+  "version": "1.3.4",
+  "notes": "Müşteri ekranı 2. monitör düzeltmesi",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",
