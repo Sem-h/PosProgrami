@@ -147,7 +147,7 @@ namespace PosProjesi.Forms
             var cartBottom = new Panel
             {
                 Dock = DockStyle.Bottom,
-                Height = 150,
+                Height = 190,
                 BackColor = Theme.BgCard
             };
             cartBottom.Paint += (s, e) =>
@@ -174,26 +174,31 @@ namespace PosProjesi.Forms
                 Location = new Point(14, 50)
             };
 
-            var btnNakit = Theme.CreateButton("NAKİT [F5]", Theme.AccentGreen, 148, 40);
+            var btnNakit = Theme.CreateButton("NAKİT [F5]", Theme.AccentGreen, 98, 40);
             btnNakit.Location = new Point(12, 72);
-            btnNakit.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+            btnNakit.Font = new Font("Segoe UI", 10, FontStyle.Bold);
             btnNakit.Click += (s, e) => TamamlaSatis("Nakit");
 
-            var btnKart = Theme.CreateButton("KART [F6]", Theme.AccentBlue, 148, 40);
-            btnKart.Location = new Point(168, 72);
-            btnKart.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+            var btnKart = Theme.CreateButton("KART [F6]", Theme.AccentBlue, 98, 40);
+            btnKart.Location = new Point(116, 72);
+            btnKart.Font = new Font("Segoe UI", 10, FontStyle.Bold);
             btnKart.Click += (s, e) => TamamlaSatis("Kredi Kartı");
 
+            var btnMisafir = Theme.CreateButton("MİSAFİR [F7]", Theme.AccentOrange, 98, 40);
+            btnMisafir.Location = new Point(220, 72);
+            btnMisafir.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+            btnMisafir.Click += (s, e) => TamamlaSatis("Misafir");
+
             var btnTemizle = Theme.CreateButton("Sepeti Temizle", Theme.BgInput, 148, 30);
-            btnTemizle.Location = new Point(12, 116);
+            btnTemizle.Location = new Point(12, 120);
             btnTemizle.ForeColor = Theme.TextSecondary;
             btnTemizle.Click += BtnTemizle_Click;
 
             var btnSil = Theme.CreateButton("Seçili Sil [Del]", Theme.AccentRed, 148, 30);
-            btnSil.Location = new Point(168, 116);
+            btnSil.Location = new Point(168, 120);
             btnSil.Click += BtnSil_Click;
 
-            cartBottom.Controls.AddRange(new Control[] { lblToplam, lblToplamTitle, btnNakit, btnKart, btnTemizle, btnSil });
+            cartBottom.Controls.AddRange(new Control[] { lblToplam, lblToplamTitle, btnNakit, btnKart, btnMisafir, btnTemizle, btnSil });
 
             rightPanel.Controls.Add(dgvSepet);
             rightPanel.Controls.Add(cartHeader);
@@ -281,6 +286,7 @@ namespace PosProjesi.Forms
                 {
                     case Keys.F5: TamamlaSatis("Nakit"); e.Handled = true; break;
                     case Keys.F6: TamamlaSatis("Kredi Kartı"); e.Handled = true; break;
+                    case Keys.F7: TamamlaSatis("Misafir"); e.Handled = true; break;
                     case Keys.Delete: BtnSil_Click(null, EventArgs.Empty); e.Handled = true; break;
                     case Keys.Escape: this.Close(); e.Handled = true; break;
                 }

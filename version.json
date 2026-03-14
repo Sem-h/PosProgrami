@@ -1,6 +1,6 @@
 {
-  "version": "1.3.1",
-  "notes": "Fiş yazdırma onay penceresi eklendi",
+  "version": "1.3.2",
+  "notes": "Misafir ödeme tipi eklendi (ücretsiz hizmet)",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",
