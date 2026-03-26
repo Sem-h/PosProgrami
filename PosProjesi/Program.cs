@@ -68,6 +68,9 @@ static class Program
             ActivePersonel = loginForm.SelectedPersonel;
         }
 
+        // Start auto email report timer
+        StartOtomatikRaporTimer();
+
         // Run main application
         Application.Run(new MainForm());
     }
@@ -144,6 +147,44 @@ static class Program
         };
 
         Application.Run(progressForm);
+    }
+
+    private static System.Windows.Forms.Timer? _raporTimer;
+
+    private static void StartOtomatikRaporTimer()
+    {
+        _raporTimer = new System.Windows.Forms.Timer { Interval = 60_000 }; // Check every minute
+        _raporTimer.Tick += (s, e) =>
+        {
+            try
+            {
+                var ayarRepo = new DataAccess.AyarlarRepository();
+                var aktif = ayarRepo.GetAyar(DataAccess.AyarlarRepository.OtomatikRaporAktif, "0");
+                if (aktif != "1") return;
+
+                var saat = ayarRepo.GetAyar(DataAccess.AyarlarRepository.OtomatikRaporSaat, "23:00");
+                var now = DateTime.Now;
+
+                // Parse configured hour
+                if (!int.TryParse(saat.Split(':')[0], out var targetHour)) return;
+                if (now.Hour != targetHour || now.Minute > 1) return;
+
+                // Check if already sent today
+                var lastSentFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lastReportDate.txt");
+                var today = now.ToString("yyyy-MM-dd");
+                if (File.Exists(lastSentFile) && File.ReadAllText(lastSentFile).Trim() == today)
+                    return;
+
+                // Send report
+                var service = new Services.EmailRaporService();
+                service.GunlukRaporGonder(DateTime.Today);
+
+                // Mark as sent
+                File.WriteAllText(lastSentFile, today);
+            }
+            catch { /* Silent fail for auto reports */ }
+        };
+        _raporTimer.Start();
     }
 }
 

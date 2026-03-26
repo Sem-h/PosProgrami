@@ -43,5 +43,16 @@ namespace PosProjesi.DataAccess
         public const string KagitGenisligi = "KagitGenisligi"; // "58" or "80"
         public const string FisAltMesaj = "FisAltMesaj";
         public const string FisYazdirmaAktif = "FisYazdirmaAktif"; // "1" or "0"
+
+        // E-posta rapor ayarları
+        public const string SmtpSunucu = "SmtpSunucu";
+        public const string SmtpPort = "SmtpPort";
+        public const string SmtpKullanici = "SmtpKullanici";
+        public const string SmtpSifre = "SmtpSifre";
+        public const string SmtpSsl = "SmtpSsl"; // "1" or "0"
+        public const string MailAlici = "MailAlici";
+        public const string MailGonderici = "MailGonderici";
+        public const string OtomatikRaporAktif = "OtomatikRaporAktif"; // "1" or "0"
+        public const string OtomatikRaporSaat = "OtomatikRaporSaat"; // "23:00"
     }
 }
