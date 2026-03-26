@@ -1,4 +1,5 @@
 using System.Drawing.Drawing2D;
+using System.Net;
 using System.Drawing.Text;
 using PosProjesi.DataAccess;
 using PosProjesi.Services;
@@ -226,7 +227,11 @@ namespace PosProjesi.Forms
             {
                 var ayarRepo = new AyarlarRepository();
                 var aktif = ayarRepo.GetAyar(AyarlarRepository.GarsonAktif, "0");
-                if (aktif != "1") return;
+                if (aktif != "1")
+                {
+                    // Not enabled — silently skip
+                    return;
+                }
 
                 var port = int.TryParse(ayarRepo.GetAyar(AyarlarRepository.GarsonPort, "5555"), out var p) ? p : 5555;
                 _garsonServer = new GarsonWebServer();
@@ -234,9 +239,49 @@ namespace PosProjesi.Forms
                 {
                     ShowGarsonBildirim(masaAd, detay);
                 };
-                _garsonServer.Start(port);
+
+                try
+                {
+                    _garsonServer.Start(port);
+                    this.Text = $"Verimek POS — Garson Sunucu: http://{GarsonWebServer.GetLocalIP()}:{port}";
+                }
+                catch (Exception startEx)
+                {
+                    // Try to register URL ACL automatically
+                    try
+                    {
+                        var psi = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "netsh",
+                            Arguments = $"http add urlacl url=http://+:{port}/ user=Everyone",
+                            Verb = "runas",
+                            UseShellExecute = true,
+                            CreateNoWindow = true,
+                            WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                        };
+                        var proc = System.Diagnostics.Process.Start(psi);
+                        proc?.WaitForExit(5000);
+                        _garsonServer.Start(port);
+                        this.Text = $"Verimek POS — Garson Sunucu: http://{GarsonWebServer.GetLocalIP()}:{port}";
+                    }
+                    catch (Exception ex2)
+                    {
+                        MessageBox.Show(
+                            $"Garson sunucusu başlatılamadı.\n\n" +
+                            $"İlk hata: {startEx.GetType().Name}: {startEx.Message}\n\n" +
+                            $"Lütfen uygulamayı yönetici olarak çalıştırın veya\n" +
+                            $"komut satırında şu komutu çalıştırın:\n\n" +
+                            $"netsh http add urlacl url=http://+:{port}/ user=Everyone\n\n" +
+                            $"İkinci hata: {ex2.Message}",
+                            "Garson Sunucu Hatası", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Garson sunucusu başlatılamadı: {ex.Message}",
+                    "Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void ShowGarsonBildirim(string masaAd, string detay)

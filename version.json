@@ -1,6 +1,6 @@
 {
-  "version": "1.5.0",
-  "notes": "Garson mobil sipariş sistemi (telefon üzerinden masa siparişi)",
+  "version": "1.5.1",
+  "notes": "Garson siparis sunucu baslangic duzeltmesi ve hata mesajlari",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",
