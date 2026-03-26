@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using PosProjesi.DataAccess;
 using PosProjesi.Services;
 using PosProjesi.UI;
 
@@ -14,6 +15,7 @@ namespace PosProjesi.Forms
         private readonly List<Panel> _actionCards = new();
         private readonly List<Panel> _statCards = new();
         private UpdateService? _updateService;
+        private GarsonWebServer? _garsonServer;
 
         public MainForm()
         {
@@ -198,11 +200,13 @@ namespace PosProjesi.Forms
             {
                 LayoutContentCards();
                 StartUpdateService();
+                StartGarsonServer();
             };
 
             this.FormClosing += (s, e) =>
             {
                 _updateService?.Dispose();
+                _garsonServer?.Dispose();
             };
         }
 
@@ -214,6 +218,75 @@ namespace PosProjesi.Forms
                 var toast = new UpdateToastPanel(info);
                 toast.ShowIn(this);
             };
+        }
+
+        private void StartGarsonServer()
+        {
+            try
+            {
+                var ayarRepo = new AyarlarRepository();
+                var aktif = ayarRepo.GetAyar(AyarlarRepository.GarsonAktif, "0");
+                if (aktif != "1") return;
+
+                var port = int.TryParse(ayarRepo.GetAyar(AyarlarRepository.GarsonPort, "5555"), out var p) ? p : 5555;
+                _garsonServer = new GarsonWebServer();
+                _garsonServer.SiparisGeldi += (masaAd, detay) =>
+                {
+                    ShowGarsonBildirim(masaAd, detay);
+                };
+                _garsonServer.Start(port);
+            }
+            catch { }
+        }
+
+        private void ShowGarsonBildirim(string masaAd, string detay)
+        {
+            var toast = new Panel
+            {
+                Size = new Size(360, 80),
+                BackColor = Color.FromArgb(22, 27, 34),
+            };
+
+            toast.Location = new Point(this.ClientSize.Width - toast.Width - 20, this.ClientSize.Height - toast.Height - 20);
+
+            toast.Paint += (s, e) =>
+            {
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+
+                var rect = new Rectangle(0, 0, toast.Width - 1, toast.Height - 1);
+                using var path = Theme.RoundedRect(rect, 10);
+                using var bg = new SolidBrush(Color.FromArgb(22, 27, 34));
+                g.FillPath(bg, path);
+                using var border = new Pen(Theme.AccentGreen, 1.5f);
+                g.DrawPath(border, path);
+
+                // Left accent
+                g.FillRectangle(new SolidBrush(Theme.AccentGreen), 0, 10, 4, toast.Height - 20);
+
+                using var titleFont = new Font("Segoe UI", 11, FontStyle.Bold);
+                TextRenderer.DrawText(g, $"📱 Garson Siparişi — {masaAd}", titleFont,
+                    new Point(14, 12), Theme.AccentGreen, TextFormatFlags.NoPadding);
+
+                using var detayFont = new Font("Segoe UI", 9);
+                var detayRect = new Rectangle(14, 38, toast.Width - 28, 36);
+                TextRenderer.DrawText(g, detay, detayFont, detayRect,
+                    Theme.TextSecondary, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
+            };
+
+            this.Controls.Add(toast);
+            toast.BringToFront();
+
+            var hideTimer = new System.Windows.Forms.Timer { Interval = 5000 };
+            hideTimer.Tick += (s, e) =>
+            {
+                hideTimer.Stop();
+                this.Controls.Remove(toast);
+                toast.Dispose();
+                hideTimer.Dispose();
+            };
+            hideTimer.Start();
         }
 
         private void ContentPanel_Paint(object? sender, PaintEventArgs e)

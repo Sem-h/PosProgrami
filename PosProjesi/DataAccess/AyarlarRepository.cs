@@ -54,5 +54,10 @@ namespace PosProjesi.DataAccess
         public const string MailGonderici = "MailGonderici";
         public const string OtomatikRaporAktif = "OtomatikRaporAktif"; // "1" or "0"
         public const string OtomatikRaporSaat = "OtomatikRaporSaat"; // "23:00"
+
+        // Garson web sunucu ayarları
+        public const string GarsonAktif = "GarsonAktif"; // "1" or "0"
+        public const string GarsonPort = "GarsonPort"; // "5555"
+        public const string GarsonPin = "GarsonPin"; // "1234"
     }
 }

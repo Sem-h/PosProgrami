@@ -47,6 +47,7 @@ namespace PosProjesi.Forms
                 ("Masa Yönetimi",     "Masa kategorileri ve masaları yönetin",             "🍽️", Theme.AccentTeal,              () => new MasaYonetimForm().ShowDialog()),
                 ("Fiş Ayarları",       "Yazıcı, fiş tasarımı ve işletme bilgileri",        "🖨️",  Color.FromArgb(243, 156, 18), () => new FisAyarlariForm().ShowDialog()),
                 ("E-posta Rapor",      "Günlük satış raporu e-posta ayarları",              "📧",  Color.FromArgb(52, 152, 219), () => new MailAyarlariForm().ShowDialog()),
+                ("Garson Sipariş",     "Mobil garson sipariş sistemi ayarları",              "📱",  Color.FromArgb(46, 204, 113), () => new GarsonAyarlariForm().ShowDialog()),
                 ("Geri Dön",           "Ana menüye geri dön",                                "↩️",  Theme.TextMuted,    () => this.Close()),
             };
 

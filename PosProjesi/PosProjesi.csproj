@@ -18,6 +18,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\verimek-logo3.svg" />
+    <Content Include="garson.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 {
-  "version": "1.4.0",
-  "notes": "Günlük satış raporu e-posta gönderimi (SMTP, otomatik/manuel)",
+  "version": "1.5.0",
+  "notes": "Garson mobil sipariş sistemi (telefon üzerinden masa siparişi)",
   "files": [
     "PosProjesi.dll",
     "PosProjesi.exe",
@@ -12,6 +12,7 @@
     "SQLitePCLRaw.batteries_v2.dll",
     "SQLitePCLRaw.core.dll",
     "SQLitePCLRaw.provider.e_sqlite3.dll",
-    "Svg.dll"
+    "Svg.dll",
+    "garson.html"
   ]
 }

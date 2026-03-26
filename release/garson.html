@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang='tr'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
+<title>ISLETME_ADI - Garson</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--accent:#3a82dc;--green:#2ea050;--orange:#f39c12;--red:#e74c3c;--text:#e6edf3;--muted:#7d8590;--input:#21262d}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.hidden{display:none!important}
+#pinScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+#pinScreen h1{font-size:24px;margin-bottom:8px;color:var(--accent)}
+#pinScreen p{color:var(--muted);margin-bottom:24px;font-size:14px}
+#pinInput{width:200px;padding:14px;font-size:24px;text-align:center;background:var(--input);border:2px solid var(--border);border-radius:12px;color:var(--text);letter-spacing:8px}
+#pinInput:focus{outline:none;border-color:var(--accent)}
+#pinBtn{margin-top:16px;padding:12px 40px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer}
+#pinError{color:var(--red);margin-top:12px;font-size:14px}
+.header{background:var(--card);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.header h2{font-size:16px;color:var(--accent)}
+.header .masa-badge{background:var(--green);color:white;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:bold;cursor:pointer}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{flex:0 0 auto;padding:10px 16px;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.tab.active{color:var(--accent);border-color:var(--accent);font-weight:600}
+#masaScreen .masa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding:16px}
+.masa-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+.masa-card:active{transform:scale(.96)}
+.masa-card .name{font-weight:bold;font-size:14px}
+.masa-card .status{font-size:11px;margin-top:4px;color:var(--muted)}
+.masa-card.bos{border-color:var(--green)}
+.masa-card.dolu{border-color:var(--orange);background:rgba(243,156,18,.08)}
+.section-title{padding:12px 16px 4px;font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:bold}
+.urun-list{padding:8px 12px}
+.urun-item{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.urun-item:active{background:var(--input)}
+.urun-info .urun-ad{font-size:14px;font-weight:600}
+.urun-info .urun-fiyat{font-size:13px;color:var(--green);margin-top:2px}
+.urun-add{background:var(--accent);color:white;border:none;width:36px;height:36px;border-radius:50%;font-size:20px;font-weight:bold;cursor:pointer;flex-shrink:0}
+#cartBar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:2px solid var(--accent);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:200;transform:translateY(100%);transition:transform .3s}
+#cartBar.show{transform:translateY(0)}
+.cart-info{font-size:14px}.cart-info span{color:var(--green);font-weight:bold}
+#cartBtn{background:var(--green);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer}
+#cartScreen{position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto}
+#cartScreen .cart-header{background:var(--card);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+#cartScreen .cart-header h3{font-size:16px}
+.cart-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:4px 8px}
+.cart-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.cart-item .ci-name{font-size:14px;font-weight:600}
+.cart-item .ci-price{font-size:13px;color:var(--green)}
+.cart-qty{display:flex;align-items:center;gap:12px}
+.cart-qty button{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--input);color:var(--text);font-size:16px;cursor:pointer}
+.cart-qty span{font-size:16px;font-weight:bold;min-width:20px;text-align:center}
+.cart-total{padding:16px;background:var(--card);border-top:1px solid var(--border)}
+.cart-total .total-row{display:flex;justify-content:space-between;font-size:18px;font-weight:bold;margin-bottom:12px}
+.cart-total .total-row span:last-child{color:var(--green)}
+#sendOrderBtn{width:100%;padding:14px;background:var(--green);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer}
+#sendOrderBtn:disabled{opacity:.5}
+.success-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500}
+.success-overlay .check{font-size:60px;margin-bottom:12px}
+.success-overlay h2{color:var(--green);margin-bottom:8px}
+.success-overlay p{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div id='pinScreen'>
+  <h1>🍽️ ISLETME_ADI</h1>
+  <p>Garson girişi için PIN kodunu girin</p>
+  <input type='password' id='pinInput' maxlength='6' inputmode='numeric' placeholder='••••'>
+  <button id='pinBtn' onclick='checkPin()'>Giriş</button>
+  <div id='pinError'></div>
+</div>
+<div id='app' class='hidden'>
+  <div class='header'>
+    <h2>🍽️ ISLETME_ADI</h2>
+    <div class='masa-badge' id='masaBadge' onclick='goToMasa()'>Masa Seç</div>
+  </div>
+  <div id='masaScreen'>
+    <div class='section-title'>MASA SEÇİN</div>
+    <div class='masa-grid' id='masaGrid'></div>
+  </div>
+  <div id='menuScreen' class='hidden'>
+    <div class='tabs' id='katTabs'></div>
+    <div class='urun-list' id='urunList'></div>
+  </div>
+  <div id='cartBar'>
+    <div class='cart-info'><span id='cartCount'>0</span> ürün — <span id='cartTotal'>₺0</span></div>
+    <button id='cartBtn' onclick='openCart()'>Sepeti Gör</button>
+  </div>
+</div>
+<div id='cartScreen' class='hidden'>
+  <div class='cart-header'>
+    <h3>🛒 Sipariş</h3>
+    <button class='cart-close' onclick='closeCart()'>✕</button>
+  </div>
+  <div id='cartItems'></div>
+  <div class='cart-total'>
+    <div class='total-row'><span>Toplam</span><span id='cartTotalBig'>₺0</span></div>
+    <button id='sendOrderBtn' onclick='sendOrder()'>📤 Siparişi Gönder</button>
+  </div>
+</div>
+<script>
+var API='';var masaId=null,masaAd='';var cart=[];var allUrunler=[];var DQ=String.fromCharCode(34);
+
+function checkPin(){
+  var pin=document.getElementById('pinInput').value;
+  fetch(API+'/api/pin-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:pin})})
+  .then(function(r){
+    if(r.ok){document.getElementById('pinScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');loadMasalar();}
+    else{document.getElementById('pinError').textContent='Geçersiz PIN kodu';document.getElementById('pinInput').value='';}
+  }).catch(function(){document.getElementById('pinError').textContent='Bağlantı hatası';});
+}
+document.getElementById('pinInput').addEventListener('keydown',function(e){if(e.key==='Enter')checkPin();});
+
+function loadMasalar(){
+  fetch(API+'/api/masalar').then(function(r){return r.json();}).then(function(masalar){
+    var grid=document.getElementById('masaGrid');
+    var groups={};
+    masalar.forEach(function(m){var k=m.kategori||'Genel';if(!groups[k])groups[k]=[];groups[k].push(m);});
+    var html='';
+    for(var kat in groups){
+      html+='<div class=\'section-title\' style=\'grid-column:1/-1\'>'+kat+'</div>';
+      groups[kat].forEach(function(m){
+        var cls=m.durum==='Boş'?'bos':'dolu';
+        html+='<div class=\'masa-card '+cls+'\' onclick=\'selectMasa('+m.id+','+DQ+kat+' - '+m.ad+DQ+')\'><div class=\'name\'>'+m.ad+'</div><div class=\'status\'>'+m.durum+(m.sepetVarMi?' 🛒':'')+'</div></div>';
+      });
+    }
+    grid.innerHTML=html;
+  });
+}
+
+function selectMasa(id,ad){
+  masaId=id;masaAd=ad;
+  document.getElementById('masaBadge').textContent=ad;
+  document.getElementById('masaScreen').classList.add('hidden');
+  document.getElementById('menuScreen').classList.remove('hidden');
+  loadMenu();
+}
+
+function goToMasa(){
+  masaId=null;masaAd='';cart=[];updateCartBar();
+  document.getElementById('masaBadge').textContent='Masa Seç';
+  document.getElementById('masaScreen').classList.remove('hidden');
+  document.getElementById('menuScreen').classList.add('hidden');
+  loadMasalar();
+}
+
+function loadMenu(){
+  Promise.all([fetch(API+'/api/kategoriler'),fetch(API+'/api/urunler')])
+  .then(function(res){return Promise.all([res[0].json(),res[1].json()]);})
+  .then(function(data){
+    var kategoriler=data[0];allUrunler=data[1];
+    var tabs=document.getElementById('katTabs');
+    tabs.innerHTML='<div class=\'tab active\' onclick=\'filterKat(-1,this)\'>Tümü</div>';
+    kategoriler.forEach(function(k){
+      tabs.innerHTML+='<div class=\'tab\' onclick=\'filterKat('+k.id+',this)\'>'+k.ad+'</div>';
+    });
+    renderUrunler(allUrunler);
+  });
+}
+
+function filterKat(katId,el){
+  var tabs=document.querySelectorAll('.tab');
+  for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');
+  el.classList.add('active');
+  if(katId===-1)renderUrunler(allUrunler);
+  else{var kat=el.textContent;renderUrunler(allUrunler.filter(function(u){return u.kategori===kat;}));}
+}
+
+function renderUrunler(list){
+  var container=document.getElementById('urunList');
+  if(list.length===0){container.innerHTML='<p style=\'padding:20px;color:var(--muted);text-align:center\'>Bu kategoride ürün yok</p>';return;}
+  var html='';
+  list.forEach(function(u){
+    var safeAd=u.ad.replace(/'/g,'');
+    html+='<div class=\'urun-item\' onclick=\'addToCart('+u.id+','+DQ+safeAd+DQ+','+u.fiyat+')\'><div class=\'urun-info\'><div class=\'urun-ad\'>'+u.ad+'</div><div class=\'urun-fiyat\'>₺'+u.fiyat.toFixed(2)+'</div></div><button class=\'urun-add\'>+</button></div>';
+  });
+  container.innerHTML=html;
+}
+
+function addToCart(urunId,ad,fiyat){
+  var existing=cart.find(function(c){return c.urunId===urunId;});
+  if(existing)existing.miktar++;
+  else cart.push({urunId:urunId,ad:ad,fiyat:fiyat,miktar:1});
+  updateCartBar();
+  document.getElementById('cartBtn').textContent='✓ Eklendi';
+  setTimeout(function(){document.getElementById('cartBtn').textContent='Sepeti Gör';},600);
+}
+
+function updateCartBar(){
+  var count=0,total=0;
+  cart.forEach(function(c){count+=c.miktar;total+=c.fiyat*c.miktar;});
+  document.getElementById('cartCount').textContent=count;
+  document.getElementById('cartTotal').textContent='₺'+total.toFixed(2);
+  var bar=document.getElementById('cartBar');
+  if(count>0)bar.classList.add('show');else bar.classList.remove('show');
+}
+
+function openCart(){renderCartItems();document.getElementById('cartScreen').classList.remove('hidden');}
+function closeCart(){document.getElementById('cartScreen').classList.add('hidden');}
+
+function renderCartItems(){
+  var container=document.getElementById('cartItems');var total=0;var html='';
+  cart.forEach(function(c,i){
+    total+=c.fiyat*c.miktar;
+    html+='<div class=\'cart-item\'><div><div class=\'ci-name\'>'+c.ad+'</div><div class=\'ci-price\'>₺'+(c.fiyat*c.miktar).toFixed(2)+'</div></div><div class=\'cart-qty\'><button onclick=\'changeQty('+i+',-1)\'>−</button><span>'+c.miktar+'</span><button onclick=\'changeQty('+i+',1)\'>+</button></div></div>';
+  });
+  container.innerHTML=html;
+  document.getElementById('cartTotalBig').textContent='₺'+total.toFixed(2);
+  document.getElementById('sendOrderBtn').disabled=cart.length===0;
+}
+
+function changeQty(idx,delta){
+  cart[idx].miktar+=delta;
+  if(cart[idx].miktar<=0)cart.splice(idx,1);
+  renderCartItems();updateCartBar();
+  if(cart.length===0)closeCart();
+}
+
+function sendOrder(){
+  if(!masaId||cart.length===0)return;
+  var btn=document.getElementById('sendOrderBtn');
+  btn.disabled=true;btn.textContent='Gönderiliyor...';
+  var items=cart.map(function(c){return{urunId:c.urunId,miktar:c.miktar};});
+  fetch(API+'/api/siparis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({masaId:masaId,items:items})})
+  .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+  .then(function(res){
+    if(res.ok){closeCart();showSuccess();cart=[];updateCartBar();}
+    else{alert(res.data.error||'Hata oluştu');}
+    btn.disabled=false;btn.textContent='📤 Siparişi Gönder';
+  }).catch(function(e){
+    alert('Bağlantı hatası: '+e.message);
+    btn.disabled=false;btn.textContent='📤 Siparişi Gönder';
+  });
+}
+
+function showSuccess(){
+  var overlay=document.createElement('div');
+  overlay.className='success-overlay';
+  overlay.innerHTML='<div class=\'check\'>✅</div><h2>Sipariş Gönderildi!</h2><p>'+masaAd+'</p>';
+  document.body.appendChild(overlay);
+  setTimeout(function(){overlay.remove();goToMasa();},2000);
+}
+</script>
+</body>
+</html>
